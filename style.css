@@ -280,7 +280,7 @@ body {
 
 .cabinet-stage {
     flex: 1;
-    padding: 24px 20px 40px;
+    padding: 24px 20px 120px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -291,14 +291,15 @@ body {
     width: 100%;
     max-width: 1380px;
     perspective: 1200px;
-    perspective-origin: 50% 20%;
-    display: flex;
-    justify-content: center;
+    perspective-origin: 50% 15%;
+    position: relative;
+    margin: 0 auto;
 }
 
-/* Heavy Steel Filing Cabinet */
-.filing-cabinet.metal-cabinet {
+/* 1. Cabinet Backdrop (Purely for background frame and empty sockets) */
+.cabinet-backdrop.metal-cabinet {
     width: 100%;
+    height: 646px;
     background: 
         radial-gradient(ellipse at 50% 0%, #2f3a43 0%, #181f24 100%),
         linear-gradient(180deg, #2b353d 0%, #151a1e 100%);
@@ -309,8 +310,29 @@ body {
         inset 0 1px 0 rgba(255, 255, 255, 0.15),
         inset 0 0 35px rgba(0, 0, 0, 0.8),
         0 0 1px 1px rgba(99, 119, 135, 0.3);
-    padding: 20px 22px 26px;
+    padding: 20px 22px 24px;
     position: relative;
+    pointer-events: none; /* Pure background layer */
+    box-sizing: border-box;
+}
+
+/* Background sockets inside the cabinet where drawers are inserted */
+.cabinet-slot-sockets {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    height: 520px;
+    box-sizing: border-box;
+}
+
+.cabinet-socket-bay {
+    background: 
+        radial-gradient(ellipse at 50% 15%, #12181d 0%, #07090b 100%);
+    border: 2px solid #1a2228;
+    border-radius: 8px;
+    box-shadow: 
+        inset 0 14px 30px rgba(0, 0, 0, 0.95),
+        inset 0 0 25px rgba(0, 0, 0, 0.9);
 }
 
 /* Industrial Rivets on Cabinet Corners */
@@ -365,42 +387,60 @@ body {
 }
 
 /* ==========================================================================
-   3 EQUAL SIZED CELLS (A-K, L-P, Q-Z) - RIGID FIXED HEIGHT
+   2. SEPARATE DRAWERS LAYER (ЯЧЕЙКИ И ПАПКИ В ОТДЕЛЬНОМ ДИВЕ)
+   Adaptive Expansion & 3 Equal Columns (A-H, I-R, S-Z)
    ========================================================================== */
 
-.drawers-container {
+.drawers-stage-layer.drawers-container {
+    position: absolute;
+    top: 96px; /* Perfectly aligned over the cabinet background sockets */
+    left: 28px;
+    right: 28px;
     display: grid;
-    grid-template-columns: repeat(3, 1fr); /* STRICTLY EQUAL 3 CELLS */
+    grid-template-columns: repeat(3, 1fr); /* 3 STRICTLY EQUAL CELLS */
     gap: 20px;
-    height: 550px; /* STRICT, IMMUTABLE HEIGHT: cabinet never resizes */
-    align-items: stretch;
+    min-height: 520px;
+    height: auto;
+    align-items: flex-start; /* Closed columns stay at 520px; open column adaptively expands */
     box-sizing: border-box;
+    z-index: 10;
+    pointer-events: auto;
+    overflow: visible;
+}
+
+/* Disable transitions during initial page mount to ensure instant, stable rendering */
+body:not(.cabinet-ready) .drawer-column,
+body:not(.cabinet-ready) .drawer-face,
+body:not(.cabinet-ready) .cabinet-cell-bay {
+    transition: none !important;
 }
 
 /* Each Drawer Column */
 .drawer-column {
-    height: 550px; /* Identical, invariant height for all 3 columns */
+    height: 520px;
+    min-height: 520px;
     box-sizing: border-box;
     background: #14191d;
     border: 3px solid #27323a;
     border-radius: 8px;
     position: relative;
-    overflow: hidden;
+    overflow: visible;
     box-shadow: 
         inset 0 6px 18px rgba(0, 0, 0, 0.9),
         0 2px 4px rgba(0, 0, 0, 0.5);
-    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.35s ease, box-shadow 0.35s ease;
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.35s ease, box-shadow 0.35s ease, height 0.4s ease;
     transform-origin: center top;
 }
 
-/* Pull-Out Drawer: Pulled forward towards user in 3D perspective */
+/* Pull-Out Drawer: Pulled forward towards user and adaptively expanded */
 .drawer-column.active-open {
-    transform: translateY(14px) translateZ(35px);
+    height: var(--col-total-height, 1030px);
+    transform: translateY(8px) translateZ(35px);
     border-color: var(--metal-highlight);
     box-shadow: 
-        0 28px 55px rgba(0, 0, 0, 0.95),
-        0 0 25px rgba(148, 169, 186, 0.25);
-    z-index: 15;
+        0 35px 70px rgba(0, 0, 0, 0.98),
+        0 0 30px rgba(148, 169, 186, 0.3);
+    z-index: 30;
 }
 
 /* ==========================================================================
@@ -409,15 +449,24 @@ body {
 
 .cabinet-cell-bay {
     position: absolute;
-    inset: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
     z-index: 1;
     background: 
         radial-gradient(ellipse at 50% 15%, #182026 0%, #0d1114 100%);
-    border-radius: 5px;
+    border-radius: 6px;
     box-shadow: 
         inset 0 16px 35px rgba(0, 0, 0, 0.95),
         inset 0 0 25px rgba(0, 0, 0, 0.85);
     overflow: hidden;
+    transition: height 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.drawer-column.active-open .cabinet-cell-bay {
+    height: var(--bay-height, 610px);
+    border-bottom: 2px solid #36444f;
 }
 
 .cell-depth-shadow {
@@ -435,7 +484,7 @@ body {
 .drawer-rail {
     position: absolute;
     top: 10px;
-    bottom: 136px;
+    bottom: 10px;
     width: 10px;
     background: linear-gradient(90deg, #27333b 0%, #617482 25%, #d5e3ed 50%, #44535e 75%, #182025 100%);
     border-radius: 2px;
@@ -461,26 +510,28 @@ body {
 
 /* ==========================================================================
    LAYER 2: FOLDERS STACK IN CAVITY (СЛОЙ 2: ПАПКИ В СТОПКЕ ДРУГ ЗА ДРУГОМ)
+   Adaptive height according to folder count; fixed comfortable step.
    ========================================================================== */
 
 .folders-stack {
     position: absolute;
-    top: 16px;
+    top: 14px;
     left: 14px;
     right: 14px;
-    height: 295px;
+    height: var(--stack-height, 580px);
     z-index: 10;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: flex-start;
     overflow: visible;
 }
 
 /* Each Folder Item in the Stack */
 .dossier-folder-item {
     position: relative;
-    height: 36px;
-    flex: 0 0 36px;
+    height: 26px;
+    flex: 0 0 26px;
+    min-height: 26px;
     cursor: pointer;
     transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.3, 1), box-shadow 0.22s ease;
     transform-origin: center bottom;
@@ -656,10 +707,13 @@ body {
    LAYER 3: PULL-OUT DRAWER FRONT PLATES ("ФАСАДЫ ВЫДВИЖНЫХ ЯЩИКОВ")
    ========================================================================== */
 
-/* 3A: Closed Drawer Front (When drawer is pushed in flush with cabinet) */
-.drawer-face.closed-state {
+/* 3A: Industrial Metal Drawer Front (Same size in closed and open state, slides down when opened) */
+.drawer-face {
     position: absolute;
-    inset: 4px;
+    top: 4px;
+    left: 4px;
+    right: 4px;
+    height: 512px;
     z-index: 25;
     background: 
         radial-gradient(circle at 50% 20%, #2f3a42 0%, #1a2126 100%),
@@ -671,11 +725,12 @@ body {
         0 8px 18px rgba(0, 0, 0, 0.8),
         inset 0 1px 0 rgba(255, 255, 255, 0.12),
         inset 0 0 16px rgba(0, 0, 0, 0.6);
-    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+    transform: translateY(0);
+    transition: transform 0.42s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, box-shadow 0.25s ease;
     overflow: hidden;
 }
 
-.drawer-face.closed-state:hover {
+.drawer-column:not(.active-open) .drawer-face:hover {
     transform: translateY(-2px) scale(1.006);
     border-color: var(--metal-highlight);
     box-shadow: 
@@ -683,8 +738,35 @@ body {
         0 0 18px rgba(148, 169, 186, 0.25);
 }
 
-.drawer-column.active-open .drawer-face.closed-state {
-    display: none;
+/* Open drawer face: SLIDES DOWN at full 520px size! */
+.drawer-column.active-open .drawer-face {
+    transform: translateY(var(--slide-down-dist, 610px));
+    z-index: 22;
+    border-color: #485b6b;
+    box-shadow: 
+        0 24px 50px rgba(0, 0, 0, 0.95),
+        0 -8px 20px rgba(0, 0, 0, 0.8),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.drawer-column.active-open .drawer-face:hover {
+    border-color: var(--metal-highlight);
+    box-shadow: 
+        0 28px 60px rgba(0, 0, 0, 0.98),
+        0 0 22px rgba(148, 169, 186, 0.35);
+}
+
+/* Top beveled metal lip of the extended drawer door */
+.drawer-column.active-open .drawer-face::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: linear-gradient(180deg, #a4bccd 0%, #445460 50%, #20272c 100%);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+    z-index: 10;
 }
 
 /* Stamped Recessed Metal Panel on Drawer Face */
@@ -783,88 +865,7 @@ body {
     text-shadow: 0 1px 0 rgba(255,255,255,0.08);
 }
 
-/* 3B: Open Drawer Front Plate (Front wall of the extended pull-out drawer) */
-.drawer-column:not(.active-open) .drawer-front-plate {
-    display: none;
-}
 
-.drawer-front-plate {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 136px;
-    z-index: 25;
-    background: 
-        radial-gradient(circle at 50% 25%, #303c44 0%, #192025 100%),
-        linear-gradient(180deg, #2a343c 0%, #161c21 100%);
-    border: 3px solid #3c4b57;
-    border-top: none;
-    border-radius: 0 0 6px 6px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 8px 12px 12px;
-    box-shadow: 
-        0 -10px 24px rgba(0, 0, 0, 0.85),
-        0 16px 30px rgba(0, 0, 0, 0.95),
-        inset 0 1px 0 rgba(255, 255, 255, 0.15);
-    animation: drawerSlideForwardAnim 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-@keyframes drawerSlideForwardAnim {
-    0% {
-        opacity: 0.8;
-        transform: translateY(14px);
-    }
-    100% {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Heavy top rim of the pull-out drawer box */
-.drawer-rim-edge {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 6px;
-    background: linear-gradient(180deg, #8ba0b1 0%, #445460 50%, #20272c 100%);
-    border-bottom: 1px solid #14191d;
-    box-shadow: 
-        0 2px 4px rgba(0,0,0,0.6),
-        inset 0 1px 0 rgba(255,255,255,0.4);
-}
-
-/* Side mounting brackets connecting front plate to telescopic rails */
-.drawer-front-plate::before {
-    content: '';
-    position: absolute;
-    top: -14px;
-    left: 8px;
-    width: 10px;
-    height: 18px;
-    background: linear-gradient(90deg, #445460 0%, #b8c8d4 50%, #2a353c 100%);
-    border-radius: 2px 2px 0 0;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.7);
-    z-index: 6;
-}
-
-.drawer-front-plate::after {
-    content: '';
-    position: absolute;
-    top: -14px;
-    right: 8px;
-    width: 10px;
-    height: 18px;
-    background: linear-gradient(90deg, #2a353c 0%, #b8c8d4 50%, #445460 100%);
-    border-radius: 2px 2px 0 0;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.7);
-    z-index: 6;
-}
 
 /* Corner Rivets on Drawer Faces */
 .drawer-rivet {

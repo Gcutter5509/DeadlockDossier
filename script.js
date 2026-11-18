@@ -143,7 +143,7 @@ class ArchiveSoundEngine {
 
 // Global App State
 const state = {
-    activeDrawer: 'L-P', // Defaults to L - P (middle drawer)
+    activeDrawer: 'A-H', // Defaults to A - H (first drawer)
     currentHeroIndex: 0,
     isModalOpen: false,
     searchQuery: '',
@@ -156,14 +156,14 @@ let elements = {};
 function initElements() {
     elements = {
         drawerCols: {
-            'A-K': document.getElementById('drawerCol-A-K'),
-            'L-P': document.getElementById('drawerCol-L-P'),
-            'Q-Z': document.getElementById('drawerCol-Q-Z')
+            'A-H': document.getElementById('drawerCol-A-H'),
+            'I-R': document.getElementById('drawerCol-I-R'),
+            'S-Z': document.getElementById('drawerCol-S-Z')
         },
         stacks: {
-            'A-K': document.getElementById('stack-A-K'),
-            'L-P': document.getElementById('stack-L-P'),
-            'Q-Z': document.getElementById('stack-Q-Z')
+            'A-H': document.getElementById('stack-A-H'),
+            'I-R': document.getElementById('stack-I-R'),
+            'S-Z': document.getElementById('stack-S-Z')
         },
         navButtons: document.querySelectorAll('.nav-drawer-btn'),
         activeCountLabel: document.getElementById('activeCountLabel'),
@@ -180,16 +180,37 @@ function initElements() {
     };
 }
 
-// Render Folders into each drawer
+// Render Folders into each drawer and calculate adaptive dimensions
 function renderAllDrawers() {
     if (!window.HEROES_DATA || !Array.isArray(window.HEROES_DATA)) return;
 
-    ['A-K', 'L-P', 'Q-Z'].forEach(drawerKey => {
+    ['A-H', 'I-R', 'S-Z'].forEach(drawerKey => {
         const stackEl = elements.stacks[drawerKey];
-        if (!stackEl) return;
+        const colEl = elements.drawerCols[drawerKey];
+        if (!stackEl || !colEl) return;
         
         stackEl.innerHTML = '';
         const heroesInDrawer = window.HEROES_DATA.filter(h => h.drawer === drawerKey);
+        const count = heroesInDrawer.length;
+
+        // Dynamic Adaptive Calculation based on folder count:
+        // Each folder takes a fixed comfortable step of 26px so tabs are never squashed.
+        // The last folder body takes full height (118px) + clearance.
+        const STEP = 26;
+        const FOLDER_BODY_HEIGHT = 118;
+        const TOP_PADDING = 14;
+        const stackHeight = Math.max(340, (count - 1) * STEP + FOLDER_BODY_HEIGHT + 14);
+        const bayHeight = stackHeight + TOP_PADDING + 8;
+        const slideDownDist = bayHeight;
+        const colTotalHeight = slideDownDist + 520;
+
+        // Set custom properties for adaptive CSS
+        colEl.style.setProperty('--stack-height', `${stackHeight}px`);
+        colEl.style.setProperty('--bay-height', `${bayHeight}px`);
+        colEl.style.setProperty('--slide-down-dist', `${slideDownDist}px`);
+        colEl.style.setProperty('--col-total-height', `${colTotalHeight}px`);
+
+        stackEl.style.height = `${stackHeight}px`;
 
         heroesInDrawer.forEach((hero, index) => {
             const folderEl = createFolderElement(hero);
@@ -240,15 +261,20 @@ function createFolderElement(hero) {
     return item;
 }
 
-// Switch Active Open Drawer
+// Switch or Toggle Active Open Drawer
 function updateActiveDrawer(targetDrawer, playAudio = true) {
-    state.activeDrawer = targetDrawer;
+    // If clicking the already open drawer: toggle close it!
+    if (state.activeDrawer === targetDrawer && playAudio) {
+        state.activeDrawer = null;
+    } else {
+        state.activeDrawer = targetDrawer;
+    }
 
     // Update drawer column classes
     Object.keys(elements.drawerCols).forEach(key => {
         const col = elements.drawerCols[key];
         if (!col) return;
-        if (key === targetDrawer) {
+        if (key === state.activeDrawer) {
             col.classList.add('active-open');
         } else {
             col.classList.remove('active-open');
@@ -258,7 +284,7 @@ function updateActiveDrawer(targetDrawer, playAudio = true) {
     // Update nav button active states
     if (elements.navButtons) {
         elements.navButtons.forEach(btn => {
-            if (btn.dataset.drawer === targetDrawer) {
+            if (btn.dataset.drawer === state.activeDrawer) {
                 btn.classList.add('active');
             } else {
                 btn.classList.remove('active');
@@ -267,10 +293,12 @@ function updateActiveDrawer(targetDrawer, playAudio = true) {
     }
 
     // Update status counter
-    if (window.HEROES_DATA) {
-        const activeHeroes = window.HEROES_DATA.filter(h => h.drawer === targetDrawer);
-        if (elements.activeCountLabel) {
-            elements.activeCountLabel.textContent = `Секция [ ${targetDrawer} ] • Дел в ящике: ${activeHeroes.length}`;
+    if (window.HEROES_DATA && elements.activeCountLabel) {
+        if (state.activeDrawer) {
+            const activeHeroes = window.HEROES_DATA.filter(h => h.drawer === state.activeDrawer);
+            elements.activeCountLabel.textContent = `Секция [ ${state.activeDrawer} ] • Дел в ящике: ${activeHeroes.length}`;
+        } else {
+            elements.activeCountLabel.textContent = `Все ящики задвинуты • Выберите секцию`;
         }
     }
 
@@ -515,13 +543,14 @@ function handleSearch(query) {
 
 // Setup Event Listeners
 function setupEventListeners() {
-    // Clicking on closed drawer face opens that drawer
+    // Clicking on drawer face (closed or open) opens / toggles that drawer
     Object.keys(elements.drawerCols).forEach(key => {
         const col = elements.drawerCols[key];
         if (!col) return;
-        const face = col.querySelector('.drawer-face.closed-state');
+        const face = col.querySelector('.drawer-face');
         if (face) {
-            face.addEventListener('click', () => {
+            face.addEventListener('click', (e) => {
+                e.stopPropagation();
                 updateActiveDrawer(key);
             });
         }
@@ -610,12 +639,25 @@ function setupEventListeners() {
 // Initialize Application
 function init() {
     initElements();
+
+    // Check deep-linking URL parameter BEFORE initial drawer activation
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetDrawer = urlParams.get('drawer');
+    if (targetDrawer && ['A-H', 'I-R', 'S-Z'].includes(targetDrawer.toUpperCase())) {
+        state.activeDrawer = targetDrawer.toUpperCase();
+    }
+
     renderAllDrawers();
     setupEventListeners();
     updateActiveDrawer(state.activeDrawer, false);
 
-    // Deep-linking support via URL search or hash (e.g. ?hero=abrams or #abrams)
-    const urlParams = new URLSearchParams(window.location.search);
+    // Enable smooth physics animations after initial layout is established
+    requestAnimationFrame(() => {
+        setTimeout(() => {
+            document.body.classList.add('cabinet-ready');
+        }, 60);
+    });
+
     const targetHero = (urlParams.get('hero') || window.location.hash.replace('#', '')).toLowerCase();
     if (targetHero) {
         const found = window.HEROES_DATA.find(h => h.id.toLowerCase() === targetHero || h.name.toLowerCase() === targetHero);
