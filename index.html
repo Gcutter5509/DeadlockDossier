@@ -14,37 +14,22 @@
         <!-- Top Archival Header -->
         <header class="archive-header">
             <div class="header-content">
-                <div class="emblem-wrapper">
-                    <!-- Occult Patron Eye SVG matching user sketch -->
-                    <svg class="occult-eye-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <!-- Industrial steel outer ring -->
-                        <circle cx="50" cy="50" r="46" stroke="#5a6875" stroke-width="3" stroke-dasharray="14 4 4 4" />
-                        <circle cx="50" cy="50" r="40" stroke="#899ba8" stroke-width="1.2" />
-                        <!-- Crosshairs / Sight lines -->
-                        <line x1="4" y1="50" x2="96" y2="50" stroke="#9bb1c2" stroke-width="1.5" stroke-opacity="0.8" />
-                        <line x1="50" y1="4" x2="50" y2="96" stroke="#9bb1c2" stroke-width="1.5" stroke-opacity="0.8" />
-                        <line x1="18" y1="18" x2="82" y2="82" stroke="#687c8c" stroke-width="1" stroke-dasharray="3 3" />
-                        <line x1="18" y1="82" x2="82" y2="18" stroke="#687c8c" stroke-width="1" stroke-dasharray="3 3" />
-                        <!-- Eye shape -->
-                        <path d="M14 50 C28 25, 72 25, 86 50 C72 75, 28 75, 14 50 Z" fill="#13171a" stroke="#a7bac7" stroke-width="2.5" />
-                        <!-- Iris -->
-                        <circle cx="50" cy="50" r="14" fill="#a82628" stroke="#d63a3c" stroke-width="2" />
-                        <!-- Pupil -->
-                        <circle cx="50" cy="50" r="6" fill="#0d1012" />
-                        <circle cx="47" cy="47" r="2.5" fill="#f0f6fa" />
-                    </svg>
+                <div class="emblem-wrapper" title="Deadlock (Valve)">
+                    <img src="assets/deadlock_icon.png" alt="Deadlock Logo" class="deadlock-official-emblem">
                 </div>
                 
                 <div class="title-group">
-                    <div class="classified-stamp">СТАЛЬНОЙ СЕЙФ-АРХИВ • КАТЕГОРИЯ: ОСОБО ОПАСНЫ</div>
-                    <h1 class="archive-title">DEADLOCK DOSSIER</h1>
+                    <div class="archive-title-container">
+                        <img src="assets/deadlock_logo.svg" alt="DEADLOCK" class="deadlock-title-logo">
+                        <span class="archive-title-suffix">DOSSIER</span>
+                    </div>
                     <p class="archive-subtitle">КАРТОТЕКА ОСОБО ОПАСНЫХ СУБЪЕКТОВ АЛЬТЕРНАТИВНОГО НЬЮ-ЙОРКА</p>
                 </div>
 
                 <div class="header-controls">
                     <div class="search-box">
                         <span class="search-icon">🔍</span>
-                        <input type="text" id="searchInput" placeholder="Поиск по имени или роли..." autocomplete="off">
+                        <input type="text" id="searchInput" placeholder="Поиск по имени героя..." autocomplete="off">
                         <button id="clearSearch" class="clear-search-btn" title="Очистить" style="display:none;">✕</button>
                     </div>
 
@@ -52,14 +37,6 @@
                         <span class="sound-icon">🔊</span> <span class="sound-text">Звук: ВКЛ</span>
                     </button>
                 </div>
-            </div>
-            
-            <!-- Quick Drawer Navigation Bar with Even Counts -->
-            <div class="drawer-navigation-hints">
-                <span class="hint-label">СЕКЦИИ МЕТАЛЛИЧЕСКОГО ШКАФА:</span>
-                <button class="nav-drawer-btn" data-drawer="A-K">СЕКЦИЯ [ A — K ] <small>(8 досье)</small></button>
-                <button class="nav-drawer-btn active" data-drawer="L-P">СЕКЦИЯ [ L — P ] <small>(7 досье)</small></button>
-                <button class="nav-drawer-btn" data-drawer="Q-Z">СЕКЦИЯ [ Q — Z ] <small>(7 досье)</small></button>
             </div>
         </header>
 
@@ -88,21 +65,48 @@
                         
                         <!-- DRAWER 1: A - K (8 heroes) -->
                         <div class="drawer-column" id="drawerCol-A-K" data-drawer="A-K">
-                            <div class="drawer-housing">
-                                <div class="drawer-face closed-state" title="Нажмите, чтобы выдвинуть секцию A - K">
-                                    <div class="drawer-rivet r-tl"></div>
-                                    <div class="drawer-rivet r-tr"></div>
-                                    <div class="drawer-rivet r-bl"></div>
-                                    <div class="drawer-rivet r-br"></div>
+                            <!-- КОРПУС ВЫДВИЖНОГО ЯЩИКА С НАПРАВЛЯЮЩИМИ -->
+                            <div class="cabinet-cell-bay">
+                                <div class="drawer-rail left-rail">
+                                    <div class="rail-slider"></div>
+                                </div>
+                                <div class="drawer-rail right-rail">
+                                    <div class="rail-slider"></div>
+                                </div>
+                                <div class="cell-depth-shadow"></div>
+                                
+                                <!-- АРХИВНЫЕ ПАПКИ ВНУТРИ ВЫДВИЖНОГО ЯЩИКА -->
+                                <div class="folders-stack" id="stack-A-K">
+                                    <!-- Folders rendered by JS: Abrams, Bebop, Dynamo, Grey Talon, Haze, Infernus, Ivy, Kelvin -->
+                                </div>
+                            </div>
+
+                            <!-- ЗАКРЫТЫЙ ФАСАД ЯЩИКА (КОГДА ЗАДВИНУТ) -->
+                            <div class="drawer-face closed-state" title="Нажмите, чтобы выдвинуть ящик A — K">
+                                <div class="drawer-rivet r-tl"></div>
+                                <div class="drawer-rivet r-tr"></div>
+                                <div class="drawer-rivet r-bl"></div>
+                                <div class="drawer-rivet r-br"></div>
+                                
+                                <div class="drawer-stamped-panel">
+                                    <!-- Замок ячейки картотеки -->
+                                    <div class="drawer-lock-unit" title="Замок ячейки № 01">
+                                        <div class="lock-cylinder">
+                                            <div class="lock-slot"></div>
+                                        </div>
+                                        <span class="lock-code">KEY 01</span>
+                                    </div>
+
+                                    <div class="drawer-stencil-tag">REG. 1984 // SEC. 01</div>
                                     
                                     <div class="steel-label-holder">
                                         <div class="label-rivets">
                                             <span class="tiny-bolt">●</span>
                                             <span class="tiny-bolt">●</span>
                                         </div>
-                                        <span class="drawer-tag">ЯЧЕЙКА 01</span>
+                                        <span class="drawer-tag">SECTION 01</span>
                                         <span class="drawer-alpha">A — K</span>
-                                        <span class="drawer-count-badge">8 ДОСЬЕ</span>
+                                        <span class="drawer-count-badge">8 DOSSIERS</span>
                                     </div>
                                     
                                     <div class="industrial-metal-handle">
@@ -110,47 +114,80 @@
                                         <div class="handle-steel-bar"></div>
                                         <div class="handle-bracket right-bracket"></div>
                                     </div>
-                                    
-                                    <div class="drawer-click-prompt">ВЫДВИНУТЬ ЯЩИК</div>
-                                </div>
 
-                                <div class="drawer-slide-content">
-                                    <div class="drawer-inner-chassis">
-                                        <div class="drawer-rail left-rail"></div>
-                                        <div class="drawer-rail right-rail"></div>
-                                        <div class="folders-stack" id="stack-A-K">
-                                            <!-- Folders rendered by JS: Abrams, Bebop, Dynamo, Grey Talon, Haze, Infernus, Ivy, Kelvin -->
-                                        </div>
+                                    <div class="drawer-stiffening-ribs"></div>
+                                    <div class="drawer-sub-stamp">OCCULT INVESTIGATION // HEAVY SLIDE</div>
+                                </div>
+                            </div>
+
+                            <!-- ПЕРЕДНЯЯ ПАНЕЛЬ ВЫДВИНУТОГО ЯЩИКА -->
+                            <div class="drawer-front-plate">
+                                <div class="drawer-rim-edge"></div>
+                                <div class="drawer-rivet r-bl"></div>
+                                <div class="drawer-rivet r-br"></div>
+                                
+                                <div class="steel-label-holder mini">
+                                    <div class="label-rivets">
+                                        <span class="tiny-bolt">●</span>
+                                        <span class="tiny-bolt">●</span>
                                     </div>
-                                    <div class="drawer-front-lip">
-                                        <div class="steel-label-holder mini">
-                                            <span class="drawer-alpha">A — K</span>
-                                        </div>
-                                        <div class="industrial-metal-handle mini">
-                                            <div class="handle-steel-bar"></div>
-                                        </div>
-                                    </div>
+                                    <span class="drawer-tag">SEC 01</span>
+                                    <span class="drawer-alpha">A — K</span>
+                                    <span class="drawer-count-badge">8 DOSSIERS</span>
+                                </div>
+                                
+                                <div class="industrial-metal-handle">
+                                    <div class="handle-bracket left-bracket"></div>
+                                    <div class="handle-steel-bar"></div>
+                                    <div class="handle-bracket right-bracket"></div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- DRAWER 2: L - P (7 heroes, Open by default) -->
                         <div class="drawer-column active-open" id="drawerCol-L-P" data-drawer="L-P">
-                            <div class="drawer-housing">
-                                <div class="drawer-face closed-state" title="Нажмите, чтобы выдвинуть секцию L - P">
-                                    <div class="drawer-rivet r-tl"></div>
-                                    <div class="drawer-rivet r-tr"></div>
-                                    <div class="drawer-rivet r-bl"></div>
-                                    <div class="drawer-rivet r-br"></div>
+                            <!-- КОРПУС ВЫДВИЖНОГО ЯЩИКА С НАПРАВЛЯЮЩИМИ -->
+                            <div class="cabinet-cell-bay">
+                                <div class="drawer-rail left-rail">
+                                    <div class="rail-slider"></div>
+                                </div>
+                                <div class="drawer-rail right-rail">
+                                    <div class="rail-slider"></div>
+                                </div>
+                                <div class="cell-depth-shadow"></div>
+                                
+                                <!-- АРХИВНЫЕ ПАПКИ ВНУТРИ ВЫДВИЖНОГО ЯЩИКА -->
+                                <div class="folders-stack" id="stack-L-P">
+                                    <!-- Folders rendered by JS: Lady Geist, Lash, McGinnis, Mirage, Mo & Krill, Paradox, Pocket -->
+                                </div>
+                            </div>
+
+                            <!-- ЗАКРЫТЫЙ ФАСАД ЯЩИКА (КОГДА ЗАДВИНУТ) -->
+                            <div class="drawer-face closed-state" title="Нажмите, чтобы выдвинуть ящик L — P">
+                                <div class="drawer-rivet r-tl"></div>
+                                <div class="drawer-rivet r-tr"></div>
+                                <div class="drawer-rivet r-bl"></div>
+                                <div class="drawer-rivet r-br"></div>
+
+                                <div class="drawer-stamped-panel">
+                                    <!-- Замок ячейки картотеки -->
+                                    <div class="drawer-lock-unit" title="Замок ячейки № 02">
+                                        <div class="lock-cylinder">
+                                            <div class="lock-slot"></div>
+                                        </div>
+                                        <span class="lock-code">KEY 02</span>
+                                    </div>
+
+                                    <div class="drawer-stencil-tag">REG. 1984 // SEC. 02</div>
 
                                     <div class="steel-label-holder">
                                         <div class="label-rivets">
                                             <span class="tiny-bolt">●</span>
                                             <span class="tiny-bolt">●</span>
                                         </div>
-                                        <span class="drawer-tag">ЯЧЕЙКА 02</span>
+                                        <span class="drawer-tag">SECTION 02</span>
                                         <span class="drawer-alpha">L — P</span>
-                                        <span class="drawer-count-badge">7 ДОСЬЕ</span>
+                                        <span class="drawer-count-badge">7 DOSSIERS</span>
                                     </div>
 
                                     <div class="industrial-metal-handle">
@@ -159,46 +196,79 @@
                                         <div class="handle-bracket right-bracket"></div>
                                     </div>
 
-                                    <div class="drawer-click-prompt">ВЫДВИНУТЬ ЯЩИК</div>
+                                    <div class="drawer-stiffening-ribs"></div>
+                                    <div class="drawer-sub-stamp">OCCULT INVESTIGATION // HEAVY SLIDE</div>
+                                </div>
+                            </div>
+
+                            <!-- ПЕРЕДНЯЯ ПАНЕЛЬ ВЫДВИНУТОГО ЯЩИКА -->
+                            <div class="drawer-front-plate">
+                                <div class="drawer-rim-edge"></div>
+                                <div class="drawer-rivet r-bl"></div>
+                                <div class="drawer-rivet r-br"></div>
+
+                                <div class="steel-label-holder mini">
+                                    <div class="label-rivets">
+                                        <span class="tiny-bolt">●</span>
+                                        <span class="tiny-bolt">●</span>
+                                    </div>
+                                    <span class="drawer-tag">SEC 02</span>
+                                    <span class="drawer-alpha">L — P</span>
+                                    <span class="drawer-count-badge">7 DOSSIERS</span>
                                 </div>
 
-                                <div class="drawer-slide-content">
-                                    <div class="drawer-inner-chassis">
-                                        <div class="drawer-rail left-rail"></div>
-                                        <div class="drawer-rail right-rail"></div>
-                                        <div class="folders-stack" id="stack-L-P">
-                                            <!-- Folders rendered by JS: Lady Geist, Lash, McGinnis, Mirage, Mo & Krill, Paradox, Pocket -->
-                                        </div>
-                                    </div>
-                                    <div class="drawer-front-lip">
-                                        <div class="steel-label-holder mini">
-                                            <span class="drawer-alpha">L — P</span>
-                                        </div>
-                                        <div class="industrial-metal-handle mini">
-                                            <div class="handle-steel-bar"></div>
-                                        </div>
-                                    </div>
+                                <div class="industrial-metal-handle">
+                                    <div class="handle-bracket left-bracket"></div>
+                                    <div class="handle-steel-bar"></div>
+                                    <div class="handle-bracket right-bracket"></div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- DRAWER 3: Q - Z (7 heroes) -->
                         <div class="drawer-column" id="drawerCol-Q-Z" data-drawer="Q-Z">
-                            <div class="drawer-housing">
-                                <div class="drawer-face closed-state" title="Нажмите, чтобы выдвинуть секцию Q - Z">
-                                    <div class="drawer-rivet r-tl"></div>
-                                    <div class="drawer-rivet r-tr"></div>
-                                    <div class="drawer-rivet r-bl"></div>
-                                    <div class="drawer-rivet r-br"></div>
+                            <!-- КОРПУС ВЫДВИЖНОГО ЯЩИКА С НАПРАВЛЯЮЩИМИ -->
+                            <div class="cabinet-cell-bay">
+                                <div class="drawer-rail left-rail">
+                                    <div class="rail-slider"></div>
+                                </div>
+                                <div class="drawer-rail right-rail">
+                                    <div class="rail-slider"></div>
+                                </div>
+                                <div class="cell-depth-shadow"></div>
+                                
+                                <!-- АРХИВНЫЕ ПАПКИ ВНУТРИ ВЫДВИЖНОГО ЯЩИКА -->
+                                <div class="folders-stack" id="stack-Q-Z">
+                                    <!-- Folders rendered by JS: Seven, Shiv, Vindicta, Viscous, Warden, Wraith, Yamato -->
+                                </div>
+                            </div>
+
+                            <!-- ЗАКРЫТЫЙ ФАСАД ЯЩИКА (КОГДА ЗАДВИНУТ) -->
+                            <div class="drawer-face closed-state" title="Нажмите, чтобы выдвинуть ящик Q — Z">
+                                <div class="drawer-rivet r-tl"></div>
+                                <div class="drawer-rivet r-tr"></div>
+                                <div class="drawer-rivet r-bl"></div>
+                                <div class="drawer-rivet r-br"></div>
+
+                                <div class="drawer-stamped-panel">
+                                    <!-- Замок ячейки картотеки -->
+                                    <div class="drawer-lock-unit" title="Замок ячейки № 03">
+                                        <div class="lock-cylinder">
+                                            <div class="lock-slot"></div>
+                                        </div>
+                                        <span class="lock-code">KEY 03</span>
+                                    </div>
+
+                                    <div class="drawer-stencil-tag">REG. 1984 // SEC. 03</div>
 
                                     <div class="steel-label-holder">
                                         <div class="label-rivets">
                                             <span class="tiny-bolt">●</span>
                                             <span class="tiny-bolt">●</span>
                                         </div>
-                                        <span class="drawer-tag">ЯЧЕЙКА 03</span>
+                                        <span class="drawer-tag">SECTION 03</span>
                                         <span class="drawer-alpha">Q — Z</span>
-                                        <span class="drawer-count-badge">7 ДОСЬЕ</span>
+                                        <span class="drawer-count-badge">7 DOSSIERS</span>
                                     </div>
 
                                     <div class="industrial-metal-handle">
@@ -207,38 +277,37 @@
                                         <div class="handle-bracket right-bracket"></div>
                                     </div>
 
-                                    <div class="drawer-click-prompt">ВЫДВИНУТЬ ЯЩИК</div>
+                                    <div class="drawer-stiffening-ribs"></div>
+                                    <div class="drawer-sub-stamp">OCCULT INVESTIGATION // HEAVY SLIDE</div>
+                                </div>
+                            </div>
+
+                            <!-- ПЕРЕДНЯЯ ПАНЕЛЬ ВЫДВИНУТОГО ЯЩИКА -->
+                            <div class="drawer-front-plate">
+                                <div class="drawer-rim-edge"></div>
+                                <div class="drawer-rivet r-bl"></div>
+                                <div class="drawer-rivet r-br"></div>
+
+                                <div class="steel-label-holder mini">
+                                    <div class="label-rivets">
+                                        <span class="tiny-bolt">●</span>
+                                        <span class="tiny-bolt">●</span>
+                                    </div>
+                                    <span class="drawer-tag">SEC 03</span>
+                                    <span class="drawer-alpha">Q — Z</span>
+                                    <span class="drawer-count-badge">7 DOSSIERS</span>
                                 </div>
 
-                                <div class="drawer-slide-content">
-                                    <div class="drawer-inner-chassis">
-                                        <div class="drawer-rail left-rail"></div>
-                                        <div class="drawer-rail right-rail"></div>
-                                        <div class="folders-stack" id="stack-Q-Z">
-                                            <!-- Folders rendered by JS: Seven, Shiv, Vindicta, Viscous, Warden, Wraith, Yamato -->
-                                        </div>
-                                    </div>
-                                    <div class="drawer-front-lip">
-                                        <div class="steel-label-holder mini">
-                                            <span class="drawer-alpha">Q — Z</span>
-                                        </div>
-                                        <div class="industrial-metal-handle mini">
-                                            <div class="handle-steel-bar"></div>
-                                        </div>
-                                    </div>
+                                <div class="industrial-metal-handle">
+                                    <div class="handle-bracket left-bracket"></div>
+                                    <div class="handle-steel-bar"></div>
+                                    <div class="handle-bracket right-bracket"></div>
                                 </div>
                             </div>
                         </div>
 
                     </div>
                 </div>
-            </div>
-
-            <!-- Helpful Interactive Bottom Bar -->
-            <div class="cabinet-status-bar">
-                <span class="status-indicator">● СЕЙФ-АРХИВ РАБОТАЕТ В ШТАТНОМ РЕЖИМЕ</span>
-                <span class="status-tip">💡 Наведите курсор на подвесную папку, чтобы приподнять её. Нажмите для открытия полного дела.</span>
-                <span class="active-count-label" id="activeCountLabel">Секция [ L — P ] • Дел в ячейке: 7</span>
             </div>
         </main>
 

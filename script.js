@@ -191,8 +191,9 @@ function renderAllDrawers() {
         stackEl.innerHTML = '';
         const heroesInDrawer = window.HEROES_DATA.filter(h => h.drawer === drawerKey);
 
-        heroesInDrawer.forEach(hero => {
+        heroesInDrawer.forEach((hero, index) => {
             const folderEl = createFolderElement(hero);
+            folderEl.style.zIndex = index + 1;
             stackEl.appendChild(folderEl);
         });
     });
@@ -211,10 +212,16 @@ function createFolderElement(hero) {
         <div class="folder-tab ${tabSlotClass}">
             <img src="${hero.image}" alt="${hero.name}" class="tab-hero-avatar">
             <span class="tab-hero-name">${hero.name.toUpperCase()}</span>
-            <span class="tab-badge">${hero.nameRu}</span>
         </div>
         <div class="folder-body">
-            <div class="folder-body-line"></div>
+            <div class="folder-paper-peek"></div>
+            <div class="folder-crease"></div>
+            <div class="folder-crease-secondary"></div>
+            <div class="folder-metal-clip" title="Архивная скрепка"></div>
+            <div class="folder-cover-content">
+                <span class="folder-stamp">CONFIDENTIAL // SEC-84</span>
+                <span class="folder-case-number">CASE № ${hero.dossierNo}</span>
+            </div>
         </div>
     `;
 
@@ -325,16 +332,14 @@ function closeDossier() {
 function renderDossierContent(hero) {
     if (!elements.dossierPaper) return;
 
-    // Difficulty stars
-    const stars = '★'.repeat(hero.difficulty) + '☆'.repeat(3 - hero.difficulty);
-
-    // Render abilities HTML
+    // Render abilities HTML (Only official in-game abilities)
     const abilitiesHtml = hero.abilities.map((ab, idx) => {
-        const isUlt = idx === 3;
+        const isUlt = idx === 3 || ab.type === 'Ультимейт';
+        const keyLabel = isUlt ? '4 ★ ULT' : ab.key;
         return `
             <div class="ability-card ${isUlt ? 'ult-card' : ''}">
                 <div class="ability-header">
-                    <span class="ability-key-badge">${ab.key}</span>
+                    <span class="ability-key-badge">${keyLabel}</span>
                     <span class="ability-name">${ab.name}</span>
                     <span class="ability-type">${ab.type}</span>
                 </div>
@@ -346,113 +351,112 @@ function renderDossierContent(hero) {
     elements.dossierPaper.innerHTML = `
         <div class="doc-header">
             <div>
-                <div class="doc-agency-info">НЬЮ-ЙОРКСКИЙ ДЕПАРТАМЕНТ НАДЗОРА ЗА АНОМАЛИЯМИ // ОТДЕЛ ДОСЬЕ</div>
-                <h2 class="doc-file-number">${hero.dossierNo}: ${hero.name.toUpperCase()} (${hero.nameRu.toUpperCase()})</h2>
-                <div class="doc-agency-info">СТАТУС: ПОД НАДЗОРОМ • СЕКЦИЯ КАРТОТЕКИ [ ${hero.drawer} ]</div>
+                <div class="doc-agency-info">НЬЮ-ЙОРКСКИЙ ДЕПАРТАМЕНТ НАДЗОРА ЗА АНОМАЛИЯМИ // АРХИВ ДОСЬЕ</div>
+                <h2 class="doc-file-number">${hero.dossierNo}: ${hero.name.toUpperCase()}</h2>
+                <div class="doc-agency-info">СТАТУС: АКТИВНЫЙ УЧАСТНИК РИТУАЛА • СЕКЦИЯ КАРТОТЕКИ [ ${hero.drawer} ]</div>
             </div>
             <div>
-                <div class="doc-classification-stamp">${hero.classification}</div>
+                <div class="doc-classification-stamp">OFFICIAL DOSSIER</div>
             </div>
         </div>
 
         <div class="doc-grid">
-            <!-- Left Column: Mugshot, Identity, Stats -->
+            <!-- Left Column: Mugshot, Weapon Specs, Attribute Growth -->
             <div class="doc-left-column">
                 <div class="mugshot-frame">
                     <img src="${hero.image}" alt="${hero.name}" class="hero-mugshot-img">
-                    <div class="mugshot-caption">ФОТОСНИМОК СУБЪЕКТА № ${hero.dossierNo}</div>
+                    <div class="mugshot-caption">ФОТОСНИМОК СУБЪЕКТА: ${hero.name.toUpperCase()}</div>
                 </div>
 
-                <div class="identity-card">
-                    <div class="id-field">
-                        <span class="id-label">Кодовое имя:</span>
-                        <span class="id-val">${hero.name}</span>
+                <!-- Weapon Specs from in-game data -->
+                <div class="specs-card weapon-specs-card">
+                    <div class="specs-card-header">
+                        <span class="specs-header-title">ТАБЕЛЬНОЕ ОРУЖИЕ</span>
                     </div>
-                    <div class="id-field">
-                        <span class="id-label">Имя (рус.):</span>
-                        <span class="id-val">${hero.nameRu}</span>
-                    </div>
-                    <div class="id-field">
-                        <span class="id-label">Класс / Роль:</span>
-                        <span class="id-val">${hero.role}</span>
-                    </div>
-                    <div class="id-field">
-                        <span class="id-label">Сложность:</span>
-                        <span class="id-val" style="color:#b87d18;">${stars}</span>
-                    </div>
-                    <div class="id-field">
-                        <span class="id-label">Табельное оружие:</span>
-                        <span class="id-val">${hero.weapon}</span>
-                    </div>
+                    <div class="specs-weapon-name">${hero.weapon.name}</div>
+                    <table class="specs-table">
+                        <tbody>
+                            <tr>
+                                <td class="spec-label">Урон от пули:</td>
+                                <td class="spec-val">${hero.weapon.bulletDamage}</td>
+                            </tr>
+                            <tr>
+                                <td class="spec-label">Урон в секунду (DPS):</td>
+                                <td class="spec-val">${hero.weapon.dps}</td>
+                            </tr>
+                            <tr>
+                                <td class="spec-label">Скорострельность:</td>
+                                <td class="spec-val">${hero.weapon.fireRate}</td>
+                            </tr>
+                            <tr>
+                                <td class="spec-label">Боезапас (обойма):</td>
+                                <td class="spec-val">${hero.weapon.ammo}</td>
+                            </tr>
+                            <tr>
+                                <td class="spec-label">Время перезарядки:</td>
+                                <td class="spec-val">${hero.weapon.reloadTime}</td>
+                            </tr>
+                            <tr>
+                                <td class="spec-label">Скорость пули:</td>
+                                <td class="spec-val">${hero.weapon.bulletVelocity}</td>
+                            </tr>
+                            <tr>
+                                <td class="spec-label">Спад урона по дальности:</td>
+                                <td class="spec-val">${hero.weapon.falloff}</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
 
-                <div class="stats-card">
-                    <div class="stat-title">БОЕВЫЕ ПОКАЗАТЕЛИ СУБЪЕКТА</div>
-                    
-                    <div class="stat-row">
-                        <div class="stat-header">
-                            <span>Живучесть (Здоровье)</span>
-                            <span>${hero.stats.health}%</span>
+                <!-- Attribute Level Gains from in-game data -->
+                <div class="specs-card growth-specs-card">
+                    <div class="specs-card-header">
+                        <span class="specs-header-title">ПРИРОСТЫ ЗА УРОВЕНЬ (LEVEL GAINS)</span>
+                    </div>
+                    <div class="growth-grid">
+                        <div class="growth-item">
+                            <span class="growth-bullet">▸</span>
+                            <div class="growth-info">
+                                <span class="growth-label">Урон от оружия:</span>
+                                <span class="growth-val">${hero.growth.weaponDamage}</span>
+                            </div>
                         </div>
-                        <div class="stat-meter-track">
-                            <div class="stat-meter-fill" style="width: ${hero.stats.health}%"></div>
+                        <div class="growth-item">
+                            <span class="growth-bullet">▸</span>
+                            <div class="growth-info">
+                                <span class="growth-label">Урон кулака:</span>
+                                <span class="growth-val">${hero.growth.meleeDamage}</span>
+                            </div>
+                        </div>
+                        <div class="growth-item">
+                            <span class="growth-bullet">▸</span>
+                            <div class="growth-info">
+                                <span class="growth-label">Спиритизм:</span>
+                                <span class="growth-val">${hero.growth.spiritPower}</span>
+                            </div>
+                        </div>
+                        <div class="growth-item">
+                            <span class="growth-bullet">▸</span>
+                            <div class="growth-info">
+                                <span class="growth-label">Запас здоровья:</span>
+                                <span class="growth-val">${hero.growth.health}</span>
+                            </div>
                         </div>
                     </div>
-
-                    <div class="stat-row">
-                        <div class="stat-header">
-                            <span>Огневая мощь (Оружие)</span>
-                            <span>${hero.stats.weapon}%</span>
-                        </div>
-                        <div class="stat-meter-track">
-                            <div class="stat-meter-fill" style="width: ${hero.stats.weapon}%"></div>
-                        </div>
-                    </div>
-
-                    <div class="stat-row">
-                        <div class="stat-header">
-                            <span>Спиритизм (Магия)</span>
-                            <span>${hero.stats.spirit}%</span>
-                        </div>
-                        <div class="stat-meter-track">
-                            <div class="stat-meter-fill" style="width: ${hero.stats.spirit}%"></div>
-                        </div>
-                    </div>
-
-                    <div class="stat-row">
-                        <div class="stat-header">
-                            <span>Мобильность</span>
-                            <span>${hero.stats.mobility}%</span>
-                        </div>
-                        <div class="stat-meter-track">
-                            <div class="stat-meter-fill" style="width: ${hero.stats.mobility}%"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="quote-block">
-                    ${hero.quote}
                 </div>
             </div>
 
-            <!-- Right Column: Lore, Abilities, Tactics -->
+            <!-- Right Column: A Fate's Tale (Lore), Abilities -->
             <div class="doc-right-column">
-                <div>
-                    <div class="section-label">СВОДКА И БИОГРАФИЧЕСКИЕ ДАННЫЕ</div>
-                    <p class="bio-text">${hero.bio}</p>
+                <div class="dossier-section">
+                    <div class="section-label">ИСТОРИЯ СУДЬБЫ (A FATE'S TALE)</div>
+                    <p class="bio-text">${hero.lore}</p>
                 </div>
 
-                <div>
-                    <div class="section-label">РЕГИСТР АНОМАЛЬНЫХ СПОСОБНОСТЕЙ</div>
+                <div class="dossier-section">
+                    <div class="section-label">СПОСОБНОСТИ СУБЪЕКТА (IN-GAME ABILITIES)</div>
                     <div class="abilities-container">
                         ${abilitiesHtml}
-                    </div>
-                </div>
-
-                <div>
-                    <div class="section-label">ТАКТИЧЕСКИЕ РЕКОМЕНДАЦИИ АГЕНТАМ</div>
-                    <div class="tactics-box">
-                        <strong>ОПЕРАТИВНАЯ ОЦЕНКА:</strong> ${hero.tactics}
                     </div>
                 </div>
             </div>
@@ -480,8 +484,9 @@ function handleSearch(query) {
     window.HEROES_DATA.forEach(hero => {
         const match = !state.searchQuery || 
             hero.name.toLowerCase().includes(state.searchQuery) ||
-            hero.nameRu.toLowerCase().includes(state.searchQuery) ||
-            hero.role.toLowerCase().includes(state.searchQuery);
+            hero.dossierNo.toLowerCase().includes(state.searchQuery) ||
+            (hero.weapon && hero.weapon.name && hero.weapon.name.toLowerCase().includes(state.searchQuery)) ||
+            (hero.abilities && hero.abilities.some(ab => ab.name.toLowerCase().includes(state.searchQuery)));
 
         const el = document.querySelector(`.dossier-folder-item[data-hero-id="${hero.id}"]`);
         if (el) {
@@ -609,10 +614,11 @@ function init() {
     setupEventListeners();
     updateActiveDrawer(state.activeDrawer, false);
 
-    // Deep-linking support via URL hash (e.g. #infernus or #abrams)
-    const hash = window.location.hash.replace('#', '').toLowerCase();
-    if (hash) {
-        const found = window.HEROES_DATA.find(h => h.id.toLowerCase() === hash || h.name.toLowerCase() === hash);
+    // Deep-linking support via URL search or hash (e.g. ?hero=abrams or #abrams)
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetHero = (urlParams.get('hero') || window.location.hash.replace('#', '')).toLowerCase();
+    if (targetHero) {
+        const found = window.HEROES_DATA.find(h => h.id.toLowerCase() === targetHero || h.name.toLowerCase() === targetHero);
         if (found) {
             openDossierById(found.id);
         }
