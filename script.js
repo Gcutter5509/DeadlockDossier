@@ -143,7 +143,7 @@ class ArchiveSoundEngine {
 
 // Global App State
 const state = {
-    activeDrawer: 'I-P', // Defaults to I - P as shown in user's sketch
+    activeDrawer: 'L-P', // Defaults to L - P (middle drawer)
     currentHeroIndex: 0,
     isModalOpen: false,
     searchQuery: '',
@@ -156,13 +156,13 @@ let elements = {};
 function initElements() {
     elements = {
         drawerCols: {
-            'A-H': document.getElementById('drawerCol-A-H'),
-            'I-P': document.getElementById('drawerCol-I-P'),
+            'A-K': document.getElementById('drawerCol-A-K'),
+            'L-P': document.getElementById('drawerCol-L-P'),
             'Q-Z': document.getElementById('drawerCol-Q-Z')
         },
         stacks: {
-            'A-H': document.getElementById('stack-A-H'),
-            'I-P': document.getElementById('stack-I-P'),
+            'A-K': document.getElementById('stack-A-K'),
+            'L-P': document.getElementById('stack-L-P'),
             'Q-Z': document.getElementById('stack-Q-Z')
         },
         navButtons: document.querySelectorAll('.nav-drawer-btn'),
@@ -184,7 +184,7 @@ function initElements() {
 function renderAllDrawers() {
     if (!window.HEROES_DATA || !Array.isArray(window.HEROES_DATA)) return;
 
-    ['A-H', 'I-P', 'Q-Z'].forEach(drawerKey => {
+    ['A-K', 'L-P', 'Q-Z'].forEach(drawerKey => {
         const stackEl = elements.stacks[drawerKey];
         if (!stackEl) return;
         
