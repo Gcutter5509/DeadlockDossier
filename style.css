@@ -1,0 +1,1238 @@
+/* ==========================================================================
+   DEADLOCK DOSSIER — ARCHIVAL STYLES
+   Vintage Occult Noir Detective Agency Aesthetic
+   ========================================================================== */
+
+:root {
+    --bg-dark: #120e0b;
+    --bg-wood-dark: #1c140e;
+    --bg-wood-mid: #2c1e14;
+    --bg-wood-light: #3d2c1f;
+    --cabinet-border: #4a3423;
+    
+    --brass-bright: #f0cb68;
+    --brass-mid: #d4af37;
+    --brass-dark: #91711e;
+    --brass-shadow: #3b2c0b;
+
+    --manila-base: #dec99e;
+    --manila-dark: #cbb284;
+    --manila-darker: #b39b6e;
+    --manila-shadow: rgba(44, 30, 20, 0.4);
+
+    --paper-bg: #f4ede1;
+    --paper-line: #dcd0bc;
+    --ink-dark: #1b1612;
+    --ink-faded: #4d4239;
+    --ink-red: #9e2a2b;
+    --ink-stamp: #b82224;
+
+    --font-heading: 'Playfair Display', Georgia, serif;
+    --font-typewriter: 'Special Elite', 'Courier Prime', Courier, monospace;
+    --font-mono: 'Courier Prime', monospace;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg-dark);
+    background-image: 
+        radial-gradient(circle at 50% 15%, rgba(68, 48, 32, 0.45) 0%, rgba(18, 14, 11, 0.95) 75%),
+        linear-gradient(rgba(0,0,0,0.4) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,0,0,0.4) 1px, transparent 1px);
+    background-size: 100% 100%, 30px 30px, 30px 30px;
+    color: var(--paper-bg);
+    font-family: var(--font-typewriter);
+    min-height: 100vh;
+    overflow-x: hidden;
+    user-select: none;
+}
+
+/* ==========================================================================
+   HEADER & OCCULT EMBLEM
+   ========================================================================== */
+
+.archive-room {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    position: relative;
+}
+
+.archive-header {
+    background: linear-gradient(180deg, #1f1610 0%, #150f0b 100%);
+    border-bottom: 3px double var(--brass-mid);
+    padding: 16px 28px 12px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.7);
+    z-index: 100;
+}
+
+.header-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.emblem-wrapper {
+    width: 68px;
+    height: 68px;
+    flex-shrink: 0;
+    filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.35));
+    animation: occultGlow 5s ease-in-out infinite alternate;
+}
+
+@keyframes occultGlow {
+    0% { filter: drop-shadow(0 0 6px rgba(212, 175, 55, 0.25)); }
+    100% { filter: drop-shadow(0 0 14px rgba(212, 175, 55, 0.55)); }
+}
+
+.occult-eye-svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.title-group {
+    flex: 1;
+    min-width: 320px;
+}
+
+.classified-stamp {
+    display: inline-block;
+    color: var(--ink-red);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    border: 1px solid var(--ink-red);
+    padding: 2px 8px;
+    border-radius: 2px;
+    margin-bottom: 4px;
+    background: rgba(158, 42, 43, 0.12);
+}
+
+.archive-title {
+    font-family: var(--font-heading);
+    font-size: 2.2rem;
+    letter-spacing: 3px;
+    color: var(--brass-bright);
+    text-shadow: 0 2px 5px rgba(0,0,0,0.8), 0 0 20px rgba(212, 175, 55, 0.3);
+    line-height: 1.1;
+}
+
+.archive-subtitle {
+    font-size: 0.78rem;
+    letter-spacing: 1.5px;
+    color: #a8947b;
+    margin-top: 3px;
+}
+
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.search-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: #0d0a08;
+    border: 1px solid var(--brass-dark);
+    border-radius: 4px;
+    padding: 6px 12px;
+    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.7);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.search-box:focus-within {
+    border-color: var(--brass-bright);
+    box-shadow: 0 0 10px rgba(212, 175, 55, 0.35);
+}
+
+.search-icon {
+    font-size: 0.95rem;
+    margin-right: 8px;
+    opacity: 0.75;
+}
+
+.search-box input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--paper-bg);
+    font-family: var(--font-mono);
+    font-size: 0.88rem;
+    width: 220px;
+}
+
+.search-box input::placeholder {
+    color: #7a6a57;
+    font-size: 0.82rem;
+}
+
+.clear-search-btn {
+    background: transparent;
+    border: none;
+    color: #9c8a75;
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 0 4px;
+}
+
+.clear-search-btn:hover {
+    color: var(--brass-bright);
+}
+
+.sound-toggle-btn {
+    background: linear-gradient(180deg, #2e2117 0%, #1e150f 100%);
+    border: 1px solid var(--brass-dark);
+    border-radius: 4px;
+    color: var(--brass-mid);
+    padding: 7px 14px;
+    font-family: var(--font-typewriter);
+    font-size: 0.8rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.5);
+    transition: all 0.2s;
+}
+
+.sound-toggle-btn:hover {
+    border-color: var(--brass-bright);
+    color: var(--brass-bright);
+    box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+}
+
+/* Quick Drawer Navigation Bar */
+.drawer-navigation-hints {
+    max-width: 1400px;
+    margin: 10px auto 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(212, 175, 55, 0.15);
+    font-size: 0.8rem;
+    flex-wrap: wrap;
+}
+
+.hint-label {
+    color: #9e8a74;
+    letter-spacing: 1px;
+}
+
+.nav-drawer-btn {
+    background: rgba(30, 21, 15, 0.8);
+    border: 1px solid #4a3423;
+    border-radius: 3px;
+    color: #c4ad8d;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    padding: 4px 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.nav-drawer-btn small {
+    opacity: 0.7;
+    margin-left: 4px;
+}
+
+.nav-drawer-btn:hover {
+    background: #36261a;
+    border-color: var(--brass-mid);
+    color: var(--brass-bright);
+}
+
+.nav-drawer-btn.active {
+    background: linear-gradient(180deg, #473222 0%, #2e2015 100%);
+    border-color: var(--brass-bright);
+    color: var(--brass-bright);
+    box-shadow: 0 0 10px rgba(212, 175, 55, 0.35);
+}
+
+/* ==========================================================================
+   CABINET & DRAWERS 3D PERSPECTIVE STAGE
+   ========================================================================== */
+
+.cabinet-stage {
+    flex: 1;
+    padding: 25px 20px 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+
+.cabinet-perspective-wrapper {
+    width: 100%;
+    max-width: 1350px;
+    perspective: 1200px;
+    perspective-origin: 50% 20%;
+    display: flex;
+    justify-content: center;
+}
+
+.filing-cabinet {
+    width: 100%;
+    background: 
+        radial-gradient(ellipse at 50% 0%, rgba(68, 48, 32, 0.5) 0%, rgba(20, 15, 11, 0.9) 100%),
+        linear-gradient(180deg, #2d1f15 0%, #17100b 100%);
+    border: 6px solid #3d291b;
+    border-radius: 12px;
+    box-shadow: 
+        0 25px 60px rgba(0, 0, 0, 0.9),
+        inset 0 0 30px rgba(0, 0, 0, 0.8),
+        0 0 1px 1px rgba(212, 175, 55, 0.3);
+    padding: 16px 20px 24px;
+    position: relative;
+}
+
+/* Cabinet Top Trim & Brass Plaque */
+.cabinet-frame-top {
+    text-align: center;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #382518;
+}
+
+.brass-plaque {
+    display: inline-block;
+    background: linear-gradient(180deg, #d4af37 0%, #aa8420 50%, #7d5e12 100%);
+    color: #120c08;
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: 2px;
+    padding: 4px 22px;
+    border-radius: 3px;
+    border: 1px solid #ffe17d;
+    box-shadow: 
+        0 3px 6px rgba(0,0,0,0.6),
+        inset 0 1px 2px rgba(255,255,255,0.4);
+    text-shadow: 0 1px 1px rgba(255, 230, 140, 0.5);
+    position: relative;
+}
+
+.brass-plaque::before,
+.brass-plaque::after {
+    content: '•';
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #3b2b0a;
+    font-size: 1.2rem;
+}
+
+.brass-plaque::before { left: 8px; }
+.brass-plaque::after { right: 8px; }
+
+/* 3 Drawer Columns Container */
+.drawers-container {
+    display: grid;
+    grid-template-columns: 1fr 1.35fr 1fr;
+    gap: 22px;
+    align-items: start;
+    transition: all 0.4s ease;
+}
+
+/* Each Drawer Column */
+.drawer-column {
+    background: #17100b;
+    border: 3px solid #312115;
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: inset 0 5px 15px rgba(0, 0, 0, 0.85);
+    position: relative;
+    transition: all 0.4s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+.drawer-housing {
+    position: relative;
+    min-height: 440px;
+    border-radius: 6px;
+    overflow: visible;
+}
+
+/* ==========================================================================
+   DRAWER STATES (CLOSED VS OPEN)
+   ========================================================================== */
+
+/* Closed Drawer Face */
+.drawer-face.closed-state {
+    width: 100%;
+    height: 440px;
+    background: 
+        radial-gradient(circle at 50% 30%, #3a2618 0%, #20150e 100%);
+    border: 3px solid #4a3321;
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 
+        0 8px 18px rgba(0,0,0,0.7),
+        inset 0 0 15px rgba(0,0,0,0.6);
+    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.3, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.drawer-face.closed-state::after {
+    content: '';
+    position: absolute;
+    inset: 4px;
+    border: 1px solid rgba(212, 175, 55, 0.15);
+    border-radius: 4px;
+    pointer-events: none;
+}
+
+.drawer-face.closed-state:hover {
+    transform: translateY(-4px) scale(1.01);
+    border-color: var(--brass-mid);
+    box-shadow: 
+        0 14px 26px rgba(0,0,0,0.8),
+        0 0 20px rgba(212, 175, 55, 0.25);
+}
+
+.drawer-column.active-open .drawer-face.closed-state {
+    display: none;
+}
+
+/* Brass Label Holder on Drawer */
+.brass-label-holder {
+    background: #110c08;
+    border: 3px solid var(--brass-mid);
+    border-radius: 4px;
+    padding: 8px 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 
+        0 4px 8px rgba(0,0,0,0.6),
+        inset 0 0 8px rgba(0,0,0,0.8),
+        0 0 8px rgba(212, 175, 55, 0.3);
+    position: relative;
+    min-width: 140px;
+}
+
+.brass-label-holder.mini {
+    padding: 4px 12px;
+    min-width: 90px;
+    border-width: 2px;
+}
+
+.drawer-tag {
+    font-size: 0.68rem;
+    letter-spacing: 2px;
+    color: #9c8466;
+}
+
+.drawer-alpha {
+    font-family: var(--font-heading);
+    font-size: 1.8rem;
+    font-weight: 900;
+    letter-spacing: 3px;
+    color: var(--brass-bright);
+    text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+}
+
+.brass-label-holder.mini .drawer-alpha {
+    font-size: 1.1rem;
+}
+
+/* Brass Handle */
+.brass-handle {
+    margin-top: 32px;
+    width: 95px;
+    height: 38px;
+    background: linear-gradient(180deg, #c79d28 0%, #856112 50%, #473206 100%);
+    border-radius: 6px;
+    border: 2px solid #edd377;
+    box-shadow: 
+        0 6px 12px rgba(0,0,0,0.7),
+        inset 0 2px 4px rgba(255,255,255,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.brass-handle::before,
+.brass-handle::after {
+    content: '';
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: #2b1d06;
+    border-radius: 50%;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.9);
+}
+.brass-handle::before { left: 8px; }
+.brass-handle::after { right: 8px; }
+
+.handle-grip {
+    width: 55px;
+    height: 14px;
+    background: #171008;
+    border-radius: 3px;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.9);
+}
+
+.brass-handle.mini {
+    margin-top: 0;
+    width: 60px;
+    height: 22px;
+    border-width: 1px;
+}
+
+.drawer-click-prompt {
+    margin-top: 35px;
+    font-size: 0.72rem;
+    letter-spacing: 1.5px;
+    color: #b59b79;
+    border: 1px dashed rgba(212, 175, 55, 0.4);
+    padding: 4px 10px;
+    border-radius: 3px;
+    background: rgba(0,0,0,0.3);
+    transition: all 0.2s;
+}
+
+.drawer-face.closed-state:hover .drawer-click-prompt {
+    color: var(--brass-bright);
+    border-color: var(--brass-bright);
+    background: rgba(212, 175, 55, 0.1);
+}
+
+/* ==========================================================================
+   ACTIVE OPEN DRAWER SLIDE-OUT (PULLED FORWARD IN 3D PERSPECTIVE)
+   ========================================================================== */
+
+.drawer-slide-content {
+    display: none;
+}
+
+.drawer-column.active-open .drawer-slide-content {
+    display: block;
+    animation: drawerSlideOut 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes drawerSlideOut {
+    0% {
+        transform: translateY(-15px) scale(0.98);
+    }
+    100% {
+        transform: translateY(0) scale(1);
+    }
+}
+
+.drawer-column.active-open {
+    border-color: var(--brass-mid);
+    box-shadow: 
+        0 18px 45px rgba(0, 0, 0, 0.9),
+        0 0 25px rgba(212, 175, 55, 0.2);
+}
+
+/* The Drawer Interior Box / Chassis */
+.drawer-inner-chassis {
+    background: 
+        linear-gradient(180deg, #18110b 0%, #24170e 100%);
+    border: 3px solid #3d281a;
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
+    min-height: 480px;
+    position: relative;
+    padding: 18px 12px 24px;
+    box-shadow: 
+        inset 0 12px 30px rgba(0, 0, 0, 0.9),
+        inset 0 0 15px rgba(0, 0, 0, 0.7);
+    overflow: visible;
+}
+
+/* Metal Side Hanging Rails */
+.drawer-rail {
+    position: absolute;
+    top: 10px;
+    bottom: 10px;
+    width: 5px;
+    background: linear-gradient(90deg, #826e4e 0%, #d4be88 50%, #4a3c26 100%);
+    border-radius: 2px;
+    box-shadow: 0 0 4px rgba(0,0,0,0.8);
+    z-index: 1;
+}
+
+.left-rail { left: 4px; }
+.right-rail { right: 4px; }
+
+/* The Front Lip of the Pulled-out Drawer (Matching sketch) */
+.drawer-front-lip {
+    background: linear-gradient(180deg, #362215 0%, #1f130b 100%);
+    border: 3px solid #543924;
+    border-top: 4px solid var(--brass-mid);
+    border-radius: 0 0 8px 8px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 12px 25px rgba(0,0,0,0.85);
+    margin-top: -2px;
+    position: relative;
+    z-index: 20;
+}
+
+/* ==========================================================================
+   FOLDERS STACK (MANILA DOSSIER FOLDERS IN DRAWER)
+   ========================================================================== */
+
+.folders-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    position: relative;
+    z-index: 5;
+    padding: 10px 4px 15px;
+}
+
+/* Each Folder Item */
+.dossier-folder-item {
+    position: relative;
+    height: 46px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.3, 1), box-shadow 0.28s ease, z-index 0s;
+    transform-origin: center bottom;
+    z-index: 2;
+}
+
+/* Folder Base Body */
+.folder-body {
+    position: absolute;
+    inset: 14px 0 0 0;
+    background: linear-gradient(180deg, #dec595 0%, #bf9f67 100%);
+    border: 1px solid #947745;
+    border-top: 1px solid #ebd9b5;
+    border-radius: 2px 2px 4px 4px;
+    box-shadow: 
+        0 4px 8px rgba(0,0,0,0.45),
+        inset 0 1px 2px rgba(255,255,255,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+}
+
+.folder-body-line {
+    width: 100%;
+    height: 1px;
+    background: rgba(100, 75, 40, 0.25);
+}
+
+/* Staggered Folder Tab at the Top */
+.folder-tab {
+    position: absolute;
+    top: 0;
+    height: 24px;
+    min-width: 160px;
+    max-width: 220px;
+    background: linear-gradient(180deg, #eed8aa 0%, #dec595 100%);
+    border: 1px solid #947745;
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
+    box-shadow: 
+        0 -2px 5px rgba(0,0,0,0.25),
+        inset 0 1px 1px rgba(255,255,255,0.6);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 10px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #24190f;
+    letter-spacing: 1px;
+    transition: all 0.2s ease;
+    z-index: 3;
+}
+
+/* Staggered Tab Slots (0, 1, 2, 3, 4 across width like real filing system) */
+.tab-slot-0 { left: 4%; }
+.tab-slot-1 { left: 24%; }
+.tab-slot-2 { left: 44%; }
+.tab-slot-3 { left: 64%; }
+.tab-slot-4 { right: 4%; left: auto; }
+
+/* Hero Mini Avatar in Tab */
+.tab-hero-avatar {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid #6b5025;
+    background: #2b1f14;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+    flex-shrink: 0;
+}
+
+.tab-hero-name {
+    font-family: var(--font-typewriter);
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-shadow: 0 1px 0 rgba(255,255,255,0.4);
+}
+
+.tab-badge {
+    font-size: 0.65rem;
+    background: rgba(30, 20, 10, 0.15);
+    padding: 1px 5px;
+    border-radius: 2px;
+    color: #4f3b1e;
+    margin-left: auto;
+}
+
+/* ==========================================================================
+   HOVER INTERACTION — FOLDER RISES UP ("ПРИПОДНИМАЕТСЯ")
+   ========================================================================== */
+
+.dossier-folder-item:hover {
+    transform: translateY(-26px) translateZ(30px) scale(1.02);
+    z-index: 50;
+}
+
+.dossier-folder-item:hover .folder-tab {
+    background: linear-gradient(180deg, #fff2cb 0%, #ebd49f 100%);
+    border-color: var(--brass-mid);
+    color: #120b04;
+    box-shadow: 
+        0 -5px 12px rgba(212, 175, 55, 0.4),
+        0 0 10px rgba(212, 175, 55, 0.3);
+}
+
+.dossier-folder-item:hover .folder-body {
+    background: linear-gradient(180deg, #ebd49f 0%, #cfb075 100%);
+    border-color: var(--brass-mid);
+    box-shadow: 
+        0 18px 30px rgba(0, 0, 0, 0.75),
+        0 0 15px rgba(212, 175, 55, 0.25);
+}
+
+/* ==========================================================================
+   CABINET STATUS BAR
+   ========================================================================== */
+
+.cabinet-status-bar {
+    max-width: 1350px;
+    width: 100%;
+    margin-top: 18px;
+    background: rgba(22, 16, 12, 0.9);
+    border: 1px solid #3b281b;
+    border-radius: 4px;
+    padding: 8px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    font-size: 0.78rem;
+    color: #ab967b;
+    flex-wrap: wrap;
+}
+
+.status-indicator {
+    color: #64b85c;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.status-tip {
+    color: #c7b396;
+}
+
+.active-count-label {
+    font-family: var(--font-mono);
+    color: var(--brass-mid);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    padding: 2px 8px;
+    border-radius: 2px;
+}
+
+/* ==========================================================================
+   FULL DOSSIER MODAL WINDOW (ОТКРЫТЫЙ ДОКУМЕНТ)
+   ========================================================================== */
+
+.dossier-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.dossier-modal.active {
+    display: flex;
+}
+
+.modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(10, 7, 5, 0.88);
+    backdrop-filter: blur(8px);
+}
+
+.dossier-document-envelope {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    max-width: 1050px;
+    max-height: 92vh;
+    background: linear-gradient(180deg, #c4a974 0%, #aa8d58 100%);
+    border: 8px solid #856a39;
+    border-radius: 8px;
+    box-shadow: 
+        0 30px 90px rgba(0, 0, 0, 0.95),
+        0 0 40px rgba(212, 175, 55, 0.25);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transform: scale(0.92) translateY(20px);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dossier-modal.active .dossier-document-envelope {
+    transform: scale(1) translateY(0);
+}
+
+.modal-close-btn {
+    position: absolute;
+    top: 14px;
+    right: 18px;
+    z-index: 20;
+    background: linear-gradient(180deg, #992224 0%, #691415 100%);
+    color: #fff;
+    border: 1px solid #ff7a7a;
+    border-radius: 3px;
+    padding: 6px 14px;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
+    transition: all 0.2s;
+}
+
+.modal-close-btn:hover {
+    background: #b52b2d;
+    box-shadow: 0 0 12px rgba(255, 50, 50, 0.6);
+    transform: scale(1.04);
+}
+
+/* Internal Aged Paper Document */
+.dossier-paper {
+    background-color: var(--paper-bg);
+    background-image: 
+        radial-gradient(ellipse at 85% 15%, rgba(200, 170, 120, 0.2) 0%, transparent 60%),
+        linear-gradient(rgba(180, 150, 100, 0.08) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 24px;
+    color: var(--ink-dark);
+    margin: 10px;
+    padding: 24px 28px 20px;
+    border-radius: 4px;
+    border: 1px solid #cfbe9f;
+    box-shadow: inset 0 0 25px rgba(100, 70, 30, 0.15);
+    overflow-y: auto;
+    max-height: calc(92vh - 85px);
+}
+
+/* Custom Scrollbar for Dossier Paper */
+.dossier-paper::-webkit-scrollbar {
+    width: 8px;
+}
+.dossier-paper::-webkit-scrollbar-track {
+    background: #e3d5be;
+}
+.dossier-paper::-webkit-scrollbar-thumb {
+    background: #997c55;
+    border-radius: 4px;
+}
+
+/* Dossier Header */
+.doc-header {
+    border-bottom: 2px dashed #998367;
+    padding-bottom: 14px;
+    margin-bottom: 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.doc-agency-info {
+    font-size: 0.72rem;
+    letter-spacing: 1.5px;
+    color: var(--ink-faded);
+    text-transform: uppercase;
+}
+
+.doc-file-number {
+    font-family: var(--font-heading);
+    font-size: 1.7rem;
+    font-weight: 900;
+    color: #120d09;
+    letter-spacing: 2px;
+    margin: 4px 0;
+}
+
+.doc-classification-stamp {
+    display: inline-block;
+    color: var(--ink-stamp);
+    border: 2px solid var(--ink-stamp);
+    padding: 4px 10px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    border-radius: 3px;
+    transform: rotate(-2deg);
+    box-shadow: inset 0 0 5px rgba(184, 34, 36, 0.15);
+}
+
+/* Dossier Grid Layout (Left Profile + Right Details) */
+.doc-grid {
+    display: grid;
+    grid-template-columns: 310px 1fr;
+    gap: 26px;
+}
+
+/* Left Column: Photo & Tactical Specs */
+.doc-left-column {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.mugshot-frame {
+    background: #fff;
+    padding: 10px 10px 16px;
+    border: 1px solid #bcaba0;
+    box-shadow: 0 8px 18px rgba(0,0,0,0.25);
+    position: relative;
+    transform: rotate(-1deg);
+}
+
+/* Vintage Paperclip Effect */
+.mugshot-frame::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    right: 24px;
+    width: 14px;
+    height: 38px;
+    border: 3px solid #787570;
+    border-radius: 8px;
+    box-shadow: 1px 2px 4px rgba(0,0,0,0.4);
+    z-index: 10;
+}
+
+.hero-mugshot-img {
+    width: 100%;
+    height: 240px;
+    object-fit: cover;
+    display: block;
+    border: 1px solid #ddd;
+    filter: sepia(0.2) contrast(1.1);
+}
+
+.mugshot-caption {
+    font-size: 0.72rem;
+    text-align: center;
+    color: #665747;
+    margin-top: 8px;
+    letter-spacing: 1px;
+}
+
+.identity-card {
+    background: #eae0cb;
+    border: 1px solid #bfb095;
+    padding: 12px;
+    border-radius: 3px;
+    font-size: 0.85rem;
+}
+
+.id-field {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    border-bottom: 1px dotted #b09f83;
+}
+
+.id-field:last-child {
+    border-bottom: none;
+}
+
+.id-label {
+    color: #6b5a48;
+    font-weight: 700;
+}
+
+.id-val {
+    font-weight: 700;
+    color: #1f1811;
+    text-align: right;
+}
+
+/* Stat Meters */
+.stats-card {
+    background: #eae0cb;
+    border: 1px solid #bfb095;
+    padding: 12px;
+    border-radius: 3px;
+}
+
+.stat-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #5c4b3a;
+    letter-spacing: 1.5px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
+.stat-row {
+    margin-bottom: 8px;
+}
+
+.stat-row:last-child {
+    margin-bottom: 0;
+}
+
+.stat-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.76rem;
+    color: #3b2f23;
+    margin-bottom: 3px;
+}
+
+.stat-meter-track {
+    width: 100%;
+    height: 7px;
+    background: #c7baa1;
+    border-radius: 2px;
+    overflow: hidden;
+    border: 1px solid #a6987f;
+}
+
+.stat-meter-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #876228 0%, #ba8a2f 100%);
+}
+
+.quote-block {
+    font-style: italic;
+    font-size: 0.86rem;
+    color: #45372a;
+    border-left: 3px solid #997c55;
+    padding-left: 10px;
+    line-height: 1.4;
+    margin-top: 4px;
+}
+
+/* Right Column: Lore, Abilities, Tactics */
+.doc-right-column {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.section-label {
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: #5c4731;
+    border-bottom: 1px solid #b8a68b;
+    padding-bottom: 4px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.section-label::before {
+    content: '§';
+    color: var(--ink-stamp);
+    font-size: 1.1rem;
+}
+
+.bio-text {
+    font-size: 0.92rem;
+    line-height: 1.6;
+    color: #2b231b;
+    text-align: justify;
+}
+
+/* 4 Abilities Roster */
+.abilities-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.ability-card {
+    background: #eae1cd;
+    border: 1px solid #bfb095;
+    border-left: 4px solid #7d633f;
+    border-radius: 3px;
+    padding: 10px 12px;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.ability-card.ult-card {
+    border-left-color: var(--ink-stamp);
+    background: #eee3cd;
+}
+
+.ability-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.ability-key-badge {
+    background: #312316;
+    color: #f7e8c3;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 2px;
+    font-family: var(--font-mono);
+}
+
+.ability-card.ult-card .ability-key-badge {
+    background: var(--ink-stamp);
+    color: #fff;
+}
+
+.ability-name {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #17110c;
+}
+
+.ability-type {
+    font-size: 0.72rem;
+    color: #78644e;
+    margin-left: auto;
+}
+
+.ability-desc {
+    font-size: 0.84rem;
+    color: #3b3026;
+    line-height: 1.45;
+}
+
+/* Tactics Card */
+.tactics-box {
+    background: #dfd2b9;
+    border: 1px solid #ad9c7e;
+    padding: 10px 14px;
+    border-radius: 3px;
+    font-size: 0.86rem;
+    line-height: 1.5;
+    color: #241c15;
+}
+
+/* Dossier Navigation Footer Inside Window */
+.dossier-nav-bar {
+    background: #36281b;
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 2px solid var(--brass-mid);
+}
+
+.dossier-nav-btn {
+    background: linear-gradient(180deg, #4d3824 0%, #291d12 100%);
+    color: var(--brass-bright);
+    border: 1px solid var(--brass-dark);
+    border-radius: 3px;
+    padding: 6px 16px;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.dossier-nav-btn:hover {
+    border-color: var(--brass-bright);
+    box-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
+    transform: translateY(-1px);
+}
+
+.dossier-counter-text {
+    font-family: var(--font-mono);
+    font-size: 0.84rem;
+    color: #d1b894;
+    letter-spacing: 1.5px;
+}
+
+/* ==========================================================================
+   RESPONSIVE DESIGN
+   ========================================================================== */
+
+@media (max-width: 1080px) {
+    .drawers-container {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .drawer-column:not(.active-open) {
+        display: none;
+    }
+
+    .doc-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .mugshot-frame {
+        max-width: 280px;
+        margin: 0 auto;
+    }
+}
+
+@media (max-width: 650px) {
+    .archive-header {
+        padding: 12px 14px;
+    }
+
+    .archive-title {
+        font-size: 1.6rem;
+    }
+
+    .search-box input {
+        width: 140px;
+    }
+
+    .dossier-paper {
+        padding: 16px 14px;
+    }
+
+    .folder-tab {
+        min-width: 120px;
+        font-size: 0.7rem;
+    }
+}
