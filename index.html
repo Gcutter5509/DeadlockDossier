@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deadlock Dossier — Металлический Архив Досье Героев</title>
+    <meta name="theme-color" content="#1f262c">
+    <title>Deadlock Dossier — Металлический архив досье героев</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Share+Tech+Mono&family=Special+Elite&display=swap" rel="stylesheet">
@@ -11,13 +12,12 @@
 </head>
 <body>
     <div class="archive-room">
-        <!-- Top Archival Header -->
         <header class="archive-header">
             <div class="header-content">
                 <div class="emblem-wrapper" title="Deadlock (Valve)">
                     <img src="assets/deadlock_icon.png" alt="Deadlock Logo" class="deadlock-official-emblem">
                 </div>
-                
+
                 <div class="title-group">
                     <div class="archive-title-container">
                         <img src="assets/deadlock_logo.svg" alt="DEADLOCK" class="deadlock-title-logo">
@@ -26,10 +26,11 @@
                 </div>
 
                 <div class="header-controls">
-                    <div class="search-box">
+                    <div class="search-box" id="searchBox">
                         <span class="search-icon">🔍</span>
-                        <input type="text" id="searchInput" placeholder="Поиск по имени героя..." autocomplete="off">
-                        <button id="clearSearch" class="clear-search-btn" title="Очистить" style="display:none;">✕</button>
+                        <input type="text" id="searchInput" placeholder="Поиск: герой, оружие, способность…" autocomplete="off">
+                        <span class="search-count" id="searchCount"></span>
+                        <button id="clearSearch" class="clear-search-btn" title="Очистить" hidden>✕</button>
                     </div>
 
                     <button id="soundToggle" class="sound-toggle-btn" title="Включить / выключить звуки архива">
@@ -39,245 +40,57 @@
             </div>
         </header>
 
-        <!-- Main Metal Cabinet Stage -->
         <main class="cabinet-stage">
-            <div class="cabinet-perspective-wrapper">
-                
-                <!-- 1. ДИВ ШКАФА: ЧИСТО ДЛЯ ФОНА И ОБРАМЛЕНИЯ -->
-                <div class="cabinet-backdrop metal-cabinet" aria-hidden="true">
-                    
-                    <!-- Industrial Rivets along cabinet frame -->
-                    <div class="cabinet-rivet corner-tl"></div>
-                    <div class="cabinet-rivet corner-tr"></div>
-                    <div class="cabinet-rivet corner-bl"></div>
-                    <div class="cabinet-rivet corner-br"></div>
+            <!-- Стальной шкаф: слои — тень на полу, верхняя крышка, корпус с ячейками, цоколь -->
+            <div class="cabinet" id="cabinet">
+                <div class="cabinet-floor-shadow" aria-hidden="true"></div>
+                <div class="cabinet-top" aria-hidden="true"></div>
 
-                    <!-- Cabinet Top Steel Plaque -->
+                <div class="cabinet-body">
+                    <div class="cabinet-rivet corner-tl" aria-hidden="true"></div>
+                    <div class="cabinet-rivet corner-tr" aria-hidden="true"></div>
+                    <div class="cabinet-rivet corner-bl" aria-hidden="true"></div>
+                    <div class="cabinet-rivet corner-br" aria-hidden="true"></div>
+
                     <div class="cabinet-frame-top">
                         <div class="steel-plaque">
-                            <span class="plaque-screw left-screw">✕</span>
-                            <span class="plaque-text">DEPARTMENT OF OCCULT INVESTIGATION // HEAVY STEEL REGISTRY [SEC-84]</span>
-                            <span class="plaque-screw right-screw">✕</span>
+                            <span class="plaque-screw" aria-hidden="true"></span>
+                            <span class="plaque-text">N.Y. DEPT. OF ANOMALY OVERSIGHT // DOSSIER REGISTRY</span>
+                            <span class="plaque-screw" aria-hidden="true"></span>
                         </div>
                     </div>
 
-                    <!-- Фоновые ниши шкафа (куда задвигаются ящики) -->
-                    <div class="cabinet-slot-sockets">
-                        <div class="cabinet-socket-bay"></div>
-                        <div class="cabinet-socket-bay"></div>
-                        <div class="cabinet-socket-bay"></div>
-                    </div>
+                    <!-- Ячейки с дверцами и папками рендерятся из script.js -->
+                    <div class="cabinet-cells" id="cabinetCells"></div>
                 </div>
 
-                <!-- 2. ОТДЕЛЬНЫЙ ДИВ ДЛЯ ЯЧЕЕК И ПАПОК -->
-                <div class="drawers-stage-layer drawers-container" id="drawersContainer">
-                    
-                    <!-- DRAWER 1: A - H (15 heroes) -->
-                    <div class="drawer-column" id="drawerCol-A-H" data-drawer="A-H">
-                        <!-- КОРПУС ВЫДВИЖНОГО ЯЩИКА С НАПРАВЛЯЮЩИМИ -->
-                        <div class="cabinet-cell-bay">
-                            <div class="drawer-rail left-rail">
-                                <div class="rail-slider"></div>
-                            </div>
-                            <div class="drawer-rail right-rail">
-                                <div class="rail-slider"></div>
-                            </div>
-                            <div class="cell-depth-shadow"></div>
-                            
-                            <!-- АРХИВНЫЕ ПАПКИ ВНУТРИ ВЫДВИЖНОГО ЯЩИКА -->
-                            <div class="folders-stack" id="stack-A-H">
-                                <!-- Folders rendered by JS -->
-                            </div>
-                        </div>
-
-                        <!-- ЕДИНЫЙ ПОЛНОРАЗМЕРНЫЙ ФАСАД ЯЩИКА (СЪЕЗЖАЕТ ВНИЗ ПРИ ОТКРЫТИИ) -->
-                        <div class="drawer-face" title="Нажмите, чтобы выдвинуть / задвинуть ящик A — H">
-                            <div class="drawer-rivet r-tl"></div>
-                            <div class="drawer-rivet r-tr"></div>
-                            <div class="drawer-rivet r-bl"></div>
-                            <div class="drawer-rivet r-br"></div>
-                            
-                            <div class="drawer-stamped-panel">
-                                <!-- Замок ячейки картотеки -->
-                                <div class="drawer-lock-unit" title="Замок ячейки № 01">
-                                    <div class="lock-cylinder">
-                                        <div class="lock-slot"></div>
-                                    </div>
-                                    <span class="lock-code">KEY 01</span>
-                                </div>
-
-                                <div class="drawer-stencil-tag">REG. 1984 // SEC. 01</div>
-                                
-                                <div class="steel-label-holder">
-                                    <div class="label-rivets">
-                                        <span class="tiny-bolt">●</span>
-                                        <span class="tiny-bolt">●</span>
-                                    </div>
-                                    <span class="drawer-tag">SECTION 01</span>
-                                    <span class="drawer-alpha">A — H</span>
-                                    <span class="drawer-count-badge">15 DOSSIERS</span>
-                                </div>
-                                
-                                <div class="industrial-metal-handle">
-                                    <div class="handle-bracket left-bracket"></div>
-                                    <div class="handle-steel-bar"></div>
-                                    <div class="handle-bracket right-bracket"></div>
-                                </div>
-
-                                <div class="drawer-stiffening-ribs"></div>
-                                <div class="drawer-sub-stamp">OCCULT INVESTIGATION // HEAVY SLIDE</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- DRAWER 2: I - R (15 heroes) -->
-                    <div class="drawer-column" id="drawerCol-I-R" data-drawer="I-R">
-                        <!-- КОРПУС ВЫДВИЖНОГО ЯЩИКА С НАПРАВЛЯЮЩИМИ -->
-                        <div class="cabinet-cell-bay">
-                            <div class="drawer-rail left-rail">
-                                <div class="rail-slider"></div>
-                            </div>
-                            <div class="drawer-rail right-rail">
-                                <div class="rail-slider"></div>
-                            </div>
-                            <div class="cell-depth-shadow"></div>
-                            
-                            <!-- АРХИВНЫЕ ПАПКИ ВНУТРИ ВЫДВИЖНОГО ЯЩИКА -->
-                            <div class="folders-stack" id="stack-I-R">
-                                <!-- Folders rendered by JS -->
-                            </div>
-                        </div>
-
-                        <!-- ЕДИНЫЙ ПОЛНОРАЗМЕРНЫЙ ФАСАД ЯЩИКА (СЪЕЗЖАЕТ ВНИЗ ПРИ ОТКРЫТИИ) -->
-                        <div class="drawer-face" title="Нажмите, чтобы выдвинуть / задвинуть ящик I — R">
-                            <div class="drawer-rivet r-tl"></div>
-                            <div class="drawer-rivet r-tr"></div>
-                            <div class="drawer-rivet r-bl"></div>
-                            <div class="drawer-rivet r-br"></div>
-
-                            <div class="drawer-stamped-panel">
-                                <!-- Замок ячейки картотеки -->
-                                <div class="drawer-lock-unit" title="Замок ячейки № 02">
-                                    <div class="lock-cylinder">
-                                        <div class="lock-slot"></div>
-                                    </div>
-                                    <span class="lock-code">KEY 02</span>
-                                </div>
-
-                                <div class="drawer-stencil-tag">REG. 1984 // SEC. 02</div>
-
-                                <div class="steel-label-holder">
-                                    <div class="label-rivets">
-                                        <span class="tiny-bolt">●</span>
-                                        <span class="tiny-bolt">●</span>
-                                    </div>
-                                    <span class="drawer-tag">SECTION 02</span>
-                                    <span class="drawer-alpha">I — R</span>
-                                    <span class="drawer-count-badge">15 DOSSIERS</span>
-                                </div>
-
-                                <div class="industrial-metal-handle">
-                                    <div class="handle-bracket left-bracket"></div>
-                                    <div class="handle-steel-bar"></div>
-                                    <div class="handle-bracket right-bracket"></div>
-                                </div>
-
-                                <div class="drawer-stiffening-ribs"></div>
-                                <div class="drawer-sub-stamp">OCCULT INVESTIGATION // HEAVY SLIDE</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- DRAWER 3: S - Z (14 heroes) -->
-                    <div class="drawer-column" id="drawerCol-S-Z" data-drawer="S-Z">
-                        <!-- КОРПУС ВЫДВИЖНОГО ЯЩИКА С НАПРАВЛЯЮЩИМИ -->
-                        <div class="cabinet-cell-bay">
-                            <div class="drawer-rail left-rail">
-                                <div class="rail-slider"></div>
-                            </div>
-                            <div class="drawer-rail right-rail">
-                                <div class="rail-slider"></div>
-                            </div>
-                            <div class="cell-depth-shadow"></div>
-                            
-                            <!-- АРХИВНЫЕ ПАПКИ ВНУТРИ ВЫДВИЖНОГО ЯЩИКА -->
-                            <div class="folders-stack" id="stack-S-Z">
-                                <!-- Folders rendered by JS -->
-                            </div>
-                        </div>
-
-                        <!-- ЕДИНЫЙ ПОЛНОРАЗМЕРНЫЙ ФАСАД ЯЩИКА (СЪЕЗЖАЕТ ВНИЗ ПРИ ОТКРЫТИИ) -->
-                        <div class="drawer-face" title="Нажмите, чтобы выдвинуть / задвинуть ящик S — Z">
-                            <div class="drawer-rivet r-tl"></div>
-                            <div class="drawer-rivet r-tr"></div>
-                            <div class="drawer-rivet r-bl"></div>
-                            <div class="drawer-rivet r-br"></div>
-
-                            <div class="drawer-stamped-panel">
-                                <!-- Замок ячейки картотеки -->
-                                <div class="drawer-lock-unit" title="Замок ячейки № 03">
-                                    <div class="lock-cylinder">
-                                        <div class="lock-slot"></div>
-                                    </div>
-                                    <span class="lock-code">KEY 03</span>
-                                </div>
-
-                                <div class="drawer-stencil-tag">REG. 1984 // SEC. 03</div>
-
-                                <div class="steel-label-holder">
-                                    <div class="label-rivets">
-                                        <span class="tiny-bolt">●</span>
-                                        <span class="tiny-bolt">●</span>
-                                    </div>
-                                    <span class="drawer-tag">SECTION 03</span>
-                                    <span class="drawer-alpha">S — Z</span>
-                                    <span class="drawer-count-badge">14 DOSSIERS</span>
-                                </div>
-
-                                <div class="industrial-metal-handle">
-                                    <div class="handle-bracket left-bracket"></div>
-                                    <div class="handle-steel-bar"></div>
-                                    <div class="handle-bracket right-bracket"></div>
-                                </div>
-
-                                <div class="drawer-stiffening-ribs"></div>
-                                <div class="drawer-sub-stamp">OCCULT INVESTIGATION // HEAVY SLIDE</div>
-                            </div>
-                        </div>
-                    </div>
-
+                <div class="cabinet-plinth" aria-hidden="true">
+                    <span class="cabinet-foot left"></span>
+                    <span class="cabinet-foot right"></span>
                 </div>
             </div>
         </main>
 
-        <!-- Full Dossier Document Modal -->
+        <!-- Открытое досье -->
         <div class="dossier-modal" id="dossierModal" aria-hidden="true">
             <div class="modal-backdrop" id="modalBackdrop"></div>
-            
-            <div class="dossier-document-envelope">
+
+            <div class="dossier-document-envelope" role="dialog" aria-modal="true" aria-label="Досье героя">
                 <button class="modal-close-btn" id="modalCloseBtn" title="Закрыть досье (ESC)">
                     ✕ ЗАКРЫТЬ ДОСЬЕ
                 </button>
 
-                <div class="dossier-paper" id="dossierPaper">
-                    <!-- Dossier content dynamically rendered by script.js -->
-                </div>
+                <div class="dossier-paper" id="dossierPaper"></div>
 
-                <!-- Navigation Controls inside the open file -->
                 <div class="dossier-nav-bar">
-                    <button class="dossier-nav-btn prev-btn" id="prevHeroBtn">
-                        ← ПРЕДЫДУЩЕЕ ДОСЬЕ
-                    </button>
-                    <span class="dossier-counter-text" id="dossierCounter">ДЕЛО 1 ИЗ 44</span>
-                    <button class="dossier-nav-btn next-btn" id="nextHeroBtn">
-                        СЛЕДУЮЩЕЕ ДОСЬЕ →
-                    </button>
+                    <button class="dossier-nav-btn prev-btn" id="prevHeroBtn">← <span class="nav-label">ПРЕДЫДУЩЕЕ ДОСЬЕ</span></button>
+                    <span class="dossier-counter-text" id="dossierCounter"></span>
+                    <button class="dossier-nav-btn next-btn" id="nextHeroBtn"><span class="nav-label">СЛЕДУЮЩЕЕ ДОСЬЕ</span> →</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Scripts -->
     <script src="heroes-data.js"></script>
     <script src="script.js"></script>
 </body>

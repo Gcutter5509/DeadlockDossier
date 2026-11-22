@@ -35,6 +35,25 @@
     --font-heading: 'Playfair Display', Georgia, serif;
     --font-typewriter: 'Special Elite', 'Courier Prime', Courier, monospace;
     --font-mono: 'Share Tech Mono', 'Courier Prime', monospace;
+
+    /* Цвета краёв страницы — для бесшовной «резинки», если браузер её всё же показывает */
+    --edge-top: #1f262c;    /* верх шапки */
+    --edge-bottom: #07090a; /* пол под шкафом */
+}
+
+/* Место под полосу прокрутки зарезервировано всегда: страница не сдвигается вбок,
+   когда полоса появляется/исчезает (в т.ч. при открытии досье) */
+html {
+    scrollbar-gutter: stable;
+    /* Цвет «за краем» страницы = цвет пола внизу страницы.
+       Им же закрашивается зарезервированная полоса прокрутки. */
+    background: var(--edge-bottom);
+}
+
+/* Без «резинки» при прокрутке за край (Chrome, Firefox, Edge, Safari 16+) */
+html,
+body {
+    overscroll-behavior: none;
 }
 
 * {
@@ -50,6 +69,8 @@ body {
         linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
         linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
     background-size: 100% 100%, 24px 24px, 24px 24px;
+    /* Фон привязан к окну, а не к высоте документа — не «гуляет», когда меняется высота страницы */
+    background-attachment: fixed;
     color: var(--paper-bg);
     font-family: var(--font-typewriter);
     min-height: 100vh;
@@ -69,11 +90,24 @@ body {
 }
 
 .archive-header {
-    background: linear-gradient(180deg, #1f262c 0%, #13171b 100%);
+    position: relative;
+    background: linear-gradient(180deg, var(--edge-top) 0%, #13171b 100%);
     border-bottom: 3px solid #36424b;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.8), inset 0 -1px 0 rgba(255,255,255,0.05);
     padding: 16px 28px 12px;
     z-index: 100;
+}
+
+/* Продолжение шапки вверх: при оттягивании страницы сверху виден цвет шапки, а не фон */
+.archive-header::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 100%;
+    height: 100vh;
+    background: var(--edge-top);
+    pointer-events: none;
 }
 
 .header-content {
@@ -226,368 +260,402 @@ body {
     box-shadow: 0 0 10px rgba(148, 169, 186, 0.35);
 }
 
-/* Quick Drawer Navigation Bar */
-.drawer-navigation-hints {
-    max-width: 1400px;
-    margin: 10px auto 0;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding-top: 8px;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-    font-size: 0.8rem;
-    flex-wrap: wrap;
+.sound-toggle-btn.is-muted {
+    color: #7d8d9a;
+    border-color: #2f3a43;
 }
 
-.hint-label {
-    color: #7b8e9f;
-    letter-spacing: 1px;
-}
-
-.nav-drawer-btn {
-    background: rgba(27, 34, 40, 0.85);
-    border: 1px solid #36444f;
-    border-radius: 3px;
-    color: #a4b7c6;
+.search-count {
     font-family: var(--font-mono);
-    font-size: 0.82rem;
-    padding: 5px 14px;
-    cursor: pointer;
-    transition: all 0.2s;
+    font-size: 0.75rem;
+    color: var(--metal-highlight);
+    margin-left: 6px;
+    min-width: 1ch;
 }
 
-.nav-drawer-btn small {
-    opacity: 0.75;
-    margin-left: 4px;
+.search-box.no-results {
+    border-color: #a33a3a;
+    box-shadow: 0 0 10px rgba(200, 60, 60, 0.35), inset 0 2px 6px rgba(0, 0, 0, 0.85);
 }
 
-.nav-drawer-btn:hover {
-    background: #2f3b45;
-    border-color: var(--metal-highlight);
-    color: #fff;
-}
+.search-box.no-results .search-count { color: #e07070; }
 
-.nav-drawer-btn.active {
-    background: linear-gradient(180deg, #44535f 0%, #29343d 100%);
-    border-color: var(--metal-chrome);
-    color: #fff;
-    box-shadow: 0 0 10px rgba(148, 169, 186, 0.4);
-}
+body.modal-open { overflow: hidden; }
 
 /* ==========================================================================
-   METALLIC CABINET CONTAINER & 3 EQUAL CELLS
+   ROOM: WALL + FLOOR (чтобы шкаф стоял, а не висел)
    ========================================================================== */
 
 .cabinet-stage {
     flex: 1;
-    padding: 24px 20px 120px;
+    position: relative;
+    padding: 56px 20px 40px;
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
+    justify-content: center;
+    align-items: flex-start;
+    overflow: hidden; /* обрезает бесконечный пол */
 }
 
-.cabinet-perspective-wrapper {
+/* Пол начинается ровно под цоколем шкафа и уходит до низа страницы */
+.cabinet::before {
+    content: '';
+    position: absolute;
+    top: calc(100% - 2px);
+    left: -100vw;
+    right: -100vw;
+    height: 3000px;
+    z-index: -2;
+    pointer-events: none;
+    border-top: 2px solid rgba(148, 169, 186, 0.1);
+    background: linear-gradient(180deg, #0d1012 0%, var(--edge-bottom) 40px, var(--edge-bottom) 100%);
+}
+
+/* ==========================================================================
+   CABINET — LAYERED STEEL BODY
+   Layer 0: floor shadow · Layer 1: top lid · Layer 2: body · Layer 3: plinth
+   ========================================================================== */
+
+.cabinet {
+    --cell-h: 548px;
+    --cell-depth: 30px;
+    --steel-1: #3a4651;
+    --steel-2: #29323a;
+    --steel-3: #1b2228;
+
+    position: relative;
     width: 100%;
-    max-width: 1380px;
-    perspective: 1200px;
-    perspective-origin: 50% 15%;
+    max-width: 1260px;
+    z-index: 1;
+}
+
+.cabinet-floor-shadow {
+    position: absolute;
+    left: 2%;
+    right: 2%;
+    bottom: -34px;
+    height: 60px;
+    background: radial-gradient(ellipse at 50% 50%, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.5) 45%, transparent 72%);
+    filter: blur(6px);
+    z-index: -1;
+}
+
+/* Верхняя крышка, видимая чуть сверху (трапеция) */
+.cabinet-top {
+    height: 30px;
+    margin: 0 -6px;
+    background:
+        repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.018) 0 1px, transparent 1px 3px),
+        linear-gradient(180deg, #1c2329 0%, #4a5865 100%);
+    clip-path: polygon(3.5% 0, 96.5% 0, 100% 100%, 0 100%);
     position: relative;
-    margin: 0 auto;
 }
 
-/* 1. Cabinet Backdrop (Purely for background frame and empty sockets) */
-.cabinet-backdrop.metal-cabinet {
-    width: 100%;
-    height: 646px;
-    background: 
-        radial-gradient(ellipse at 50% 0%, #2f3a43 0%, #181f24 100%),
-        linear-gradient(180deg, #2b353d 0%, #151a1e 100%);
-    border: 6px solid #20272d;
-    border-radius: 10px;
-    box-shadow: 
-        0 25px 65px rgba(0, 0, 0, 0.95),
-        inset 0 1px 0 rgba(255, 255, 255, 0.15),
-        inset 0 0 35px rgba(0, 0, 0, 0.8),
-        0 0 1px 1px rgba(99, 119, 135, 0.3);
-    padding: 20px 22px 24px;
+/* Скруглённая передняя кромка крышки */
+.cabinet-top::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 5px;
+    background: linear-gradient(180deg, #a9bccb 0%, #5c6d7a 60%, #2a333a 100%);
+}
+
+.cabinet-body {
     position: relative;
-    pointer-events: none; /* Pure background layer */
-    box-sizing: border-box;
+    padding: 18px 30px 34px;
+    background:
+        repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.016) 0 1px, transparent 1px 4px),
+        linear-gradient(180deg, var(--steel-1) 0%, var(--steel-2) 40%, var(--steel-3) 100%);
+    border-left: 4px solid #46545f;
+    border-right: 4px solid #12171b;
+    box-shadow:
+        inset 4px 0 6px rgba(255, 255, 255, 0.06),
+        inset -10px 0 18px rgba(0, 0, 0, 0.45),
+        inset 0 -14px 24px rgba(0, 0, 0, 0.5),
+        0 30px 60px rgba(0, 0, 0, 0.7);
 }
 
-/* Background sockets inside the cabinet where drawers are inserted */
-.cabinet-slot-sockets {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-    height: 520px;
-    box-sizing: border-box;
+/* Боковые закруглённые рёбра корпуса */
+.cabinet-body::before,
+.cabinet-body::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 10px;
+    pointer-events: none;
 }
 
-.cabinet-socket-bay {
-    background: 
-        radial-gradient(ellipse at 50% 15%, #12181d 0%, #07090b 100%);
-    border: 2px solid #1a2228;
-    border-radius: 8px;
-    box-shadow: 
-        inset 0 14px 30px rgba(0, 0, 0, 0.95),
-        inset 0 0 25px rgba(0, 0, 0, 0.9);
+.cabinet-body::before {
+    left: 0;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.12), transparent);
 }
 
-/* Industrial Rivets on Cabinet Corners */
+.cabinet-body::after {
+    right: 0;
+    background: linear-gradient(270deg, rgba(0, 0, 0, 0.5), transparent);
+}
+
 .cabinet-rivet {
     position: absolute;
     width: 12px;
     height: 12px;
     border-radius: 50%;
     background: radial-gradient(circle at 35% 35%, var(--metal-chrome) 0%, var(--metal-sheen) 55%, #161c20 100%);
-    box-shadow: 
-        0 2px 4px rgba(0, 0, 0, 0.8),
-        inset 0 1px 1px rgba(255, 255, 255, 0.6);
-    z-index: 5;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.8), inset 0 1px 1px rgba(255, 255, 255, 0.6);
+    z-index: 2;
 }
 
-.corner-tl { top: 10px; left: 10px; }
-.corner-tr { top: 10px; right: 10px; }
-.corner-bl { bottom: 10px; left: 10px; }
-.corner-br { bottom: 10px; right: 10px; }
+.corner-tl { top: 12px; left: 12px; }
+.corner-tr { top: 12px; right: 12px; }
+.corner-bl { bottom: 12px; left: 12px; }
+.corner-br { bottom: 12px; right: 12px; }
 
-/* Cabinet Top Steel Plaque */
 .cabinet-frame-top {
     text-align: center;
-    margin-bottom: 20px;
-    padding-bottom: 14px;
-    border-bottom: 2px solid #273138;
+    margin-bottom: 34px;
 }
 
 .steel-plaque {
     display: inline-flex;
     align-items: center;
-    gap: 12px;
-    background: linear-gradient(180deg, #44525d 0%, #2b353d 50%, #1e252a 100%);
+    gap: 14px;
+    background: linear-gradient(180deg, #5a6a77 0%, #3a4651 45%, #262e35 100%);
     color: #dbe7f0;
     font-family: var(--font-mono);
-    font-size: 0.86rem;
-    font-weight: 700;
+    font-size: 0.84rem;
     letter-spacing: 2px;
-    padding: 6px 24px;
-    border-radius: 4px;
-    border: 1px solid #5a6c7a;
-    box-shadow: 
-        0 4px 10px rgba(0,0,0,0.7),
-        inset 0 1px 1px rgba(255,255,255,0.25);
-    text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+    padding: 7px 18px;
+    border-radius: 3px;
+    border: 1px solid #6b7e8d;
+    box-shadow:
+        0 3px 0 #12171b,
+        0 6px 12px rgba(0, 0, 0, 0.6),
+        inset 0 1px 1px rgba(255, 255, 255, 0.3);
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.9);
+    max-width: 100%;
 }
 
 .plaque-screw {
-    font-size: 0.85rem;
-    color: #8da0af;
-    opacity: 0.7;
-}
-
-/* ==========================================================================
-   2. SEPARATE DRAWERS LAYER (ЯЧЕЙКИ И ПАПКИ В ОТДЕЛЬНОМ ДИВЕ)
-   Adaptive Expansion & 3 Equal Columns (A-H, I-R, S-Z)
-   ========================================================================== */
-
-.drawers-stage-layer.drawers-container {
-    position: absolute;
-    top: 96px; /* Perfectly aligned over the cabinet background sockets */
-    left: 28px;
-    right: 28px;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr); /* 3 STRICTLY EQUAL CELLS */
-    gap: 20px;
-    min-height: 520px;
-    height: auto;
-    align-items: flex-start; /* Closed columns stay at 520px; open column adaptively expands */
-    box-sizing: border-box;
-    z-index: 10;
-    pointer-events: auto;
-    overflow: visible;
-}
-
-/* Disable transitions during initial page mount to ensure instant, stable rendering */
-body:not(.cabinet-ready) .drawer-column,
-body:not(.cabinet-ready) .drawer-face,
-body:not(.cabinet-ready) .cabinet-cell-bay {
-    transition: none !important;
-}
-
-/* Each Drawer Column */
-.drawer-column {
-    height: 520px;
-    min-height: 520px;
-    box-sizing: border-box;
-    background: #14191d;
-    border: 3px solid #27323a;
-    border-radius: 8px;
-    position: relative;
-    overflow: visible;
-    box-shadow: 
-        inset 0 6px 18px rgba(0, 0, 0, 0.9),
-        0 2px 4px rgba(0, 0, 0, 0.5);
-    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.35s ease, box-shadow 0.35s ease, height 0.4s ease;
-    transform-origin: center top;
-}
-
-/* Pull-Out Drawer: Pulled forward towards user and adaptively expanded */
-.drawer-column.active-open {
-    height: var(--col-total-height, 1030px);
-    transform: translateY(8px) translateZ(35px);
-    border-color: var(--metal-highlight);
-    box-shadow: 
-        0 35px 70px rgba(0, 0, 0, 0.98),
-        0 0 30px rgba(148, 169, 186, 0.3);
-    z-index: 30;
-}
-
-/* ==========================================================================
-   LAYER 1: CABINET CELL BAY / RECESSED CHASSIS (СЛОЙ 1: ШКАФ И ПОЛОСТЬ)
-   ========================================================================== */
-
-.cabinet-cell-bay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 100%;
-    z-index: 1;
-    background: 
-        radial-gradient(ellipse at 50% 15%, #182026 0%, #0d1114 100%);
-    border-radius: 6px;
-    box-shadow: 
-        inset 0 16px 35px rgba(0, 0, 0, 0.95),
-        inset 0 0 25px rgba(0, 0, 0, 0.85);
-    overflow: hidden;
-    transition: height 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.drawer-column.active-open .cabinet-cell-bay {
-    height: var(--bay-height, 610px);
-    border-bottom: 2px solid #36444f;
-}
-
-.cell-depth-shadow {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 45px;
-    background: linear-gradient(180deg, rgba(0, 0, 0, 0.85) 0%, transparent 100%);
-    pointer-events: none;
-    z-index: 3;
-}
-
-/* Stainless Steel Telescopic Drawer Extension Slides */
-.drawer-rail {
-    position: absolute;
-    top: 10px;
-    bottom: 10px;
     width: 10px;
-    background: linear-gradient(90deg, #27333b 0%, #617482 25%, #d5e3ed 50%, #44535e 75%, #182025 100%);
-    border-radius: 2px;
-    box-shadow: 
-        0 0 8px rgba(0,0,0,0.95),
-        inset 0 1px 1px rgba(255,255,255,0.4);
-    z-index: 4;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background:
+        linear-gradient(45deg, transparent 44%, #1a2026 44% 56%, transparent 56%),
+        radial-gradient(circle at 35% 35%, #c7d4de, #5d6e7b 70%);
+    box-shadow: inset 0 0 1px #000;
 }
 
-.rail-slider {
+/* Цоколь и ножки */
+.cabinet-plinth {
+    position: relative;
+    height: 34px;
+    margin: 0 18px;
+    background: linear-gradient(180deg, #0a0d0f 0%, #151a1e 40%, #0c0f11 100%);
+    box-shadow: inset 0 8px 10px rgba(0, 0, 0, 0.9);
+}
+
+.cabinet-foot {
     position: absolute;
-    top: 15px;
-    bottom: 15px;
-    left: 2px;
-    right: 2px;
-    background: linear-gradient(90deg, #9bb0bf 0%, #ffffff 50%, #6d7f8d 100%);
-    border-radius: 1px;
-    box-shadow: inset 0 0 2px rgba(0,0,0,0.6);
+    bottom: -8px;
+    width: 70px;
+    height: 14px;
+    background: linear-gradient(180deg, #3b4752, #161b1f);
+    border-radius: 2px 2px 4px 4px;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.8);
 }
 
-.left-rail { left: 8px; }
-.right-rail { right: 8px; }
+.cabinet-foot.left { left: 24px; }
+.cabinet-foot.right { right: 24px; }
 
 /* ==========================================================================
-   LAYER 2: FOLDERS STACK IN CAVITY (СЛОЙ 2: ПАПКИ В СТОПКЕ ДРУГ ЗА ДРУГОМ)
-   Adaptive height according to folder count; fixed comfortable step.
+   CELLS — RECESSED COMPARTMENTS
+   ========================================================================== */
+
+.cabinet-cells {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 34px;
+}
+
+.cell {
+    --pull: 540px;
+    position: relative;
+    height: var(--cell-h);
+}
+
+/* Табличка секции на раме над ячейкой (кликабельна) */
+.cell-label-plate {
+    position: absolute;
+    top: -26px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 2px 12px;
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    letter-spacing: 2px;
+    color: #9fb2c1;
+    background: linear-gradient(180deg, #1a2126, #0f1316);
+    border: 1px solid #4e5f6c;
+    border-radius: 2px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.9), 0 1px 0 rgba(255, 255, 255, 0.08);
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.cell-label-plate b {
+    color: var(--metal-chrome);
+    font-weight: 700;
+}
+
+/* Проём ячейки: прокатная кромка + ниша с внутренними стенками */
+.cell-opening {
+    position: relative;
+    height: var(--cell-h);
+    border-radius: 4px;
+    overflow: hidden;
+    background: #07090a;
+    box-shadow:
+        0 0 0 3px #12171b,
+        0 0 0 5px #4b5965,
+        0 0 0 6px #1a2025,
+        0 2px 0 6px rgba(255, 255, 255, 0.07);
+}
+
+.cell-wall {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.wall-back {
+    inset: var(--cell-depth);
+    background:
+        repeating-linear-gradient(90deg, transparent 0 calc(33.3% - 1px), rgba(0, 0, 0, 0.55) calc(33.3% - 1px) 33.3%),
+        radial-gradient(ellipse at 50% 0%, #1b2228 0%, #0c1013 75%);
+    box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.8);
+}
+
+.wall-top {
+    background: linear-gradient(180deg, #020303 0%, #0b0e10 100%);
+    clip-path: polygon(0 0, 100% 0, calc(100% - var(--cell-depth)) var(--cell-depth), var(--cell-depth) var(--cell-depth));
+}
+
+.wall-left {
+    background: linear-gradient(90deg, #11161a 0%, #070909 100%);
+    clip-path: polygon(0 0, var(--cell-depth) var(--cell-depth), var(--cell-depth) calc(100% - var(--cell-depth)), 0 100%);
+}
+
+.wall-right {
+    background: linear-gradient(270deg, #1c242a 0%, #0b0f11 100%);
+    clip-path: polygon(100% 0, 100% 100%, calc(100% - var(--cell-depth)) calc(100% - var(--cell-depth)), calc(100% - var(--cell-depth)) var(--cell-depth));
+}
+
+.wall-floor {
+    background:
+        repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.02) 0 1px, transparent 1px 5px),
+        linear-gradient(180deg, #161c21 0%, #36414a 100%);
+    clip-path: polygon(var(--cell-depth) calc(100% - var(--cell-depth)), calc(100% - var(--cell-depth)) calc(100% - var(--cell-depth)), 100% 100%, 0 100%);
+}
+
+/* Тень от верхней кромки проёма — падает на папки */
+.cell-inner-shadow {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    pointer-events: none;
+    background:
+        linear-gradient(180deg, rgba(0, 0, 0, 0.75) 0%, transparent 70px),
+        linear-gradient(90deg, rgba(0, 0, 0, 0.45) 0%, transparent 50px),
+        linear-gradient(270deg, rgba(0, 0, 0, 0.25) 0%, transparent 40px);
+}
+
+.cell-empty-note {
+    position: absolute;
+    inset: auto 0 45% 0;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    letter-spacing: 2px;
+    color: #5f7180;
+    z-index: 5;
+}
+
+/* ==========================================================================
+   FOLDERS STANDING INSIDE THE CELL
+   --depth: 0 = дальняя папка (у задней стенки), 1 = ближняя (у кромки)
    ========================================================================== */
 
 .folders-stack {
     position: absolute;
-    top: 14px;
-    left: 14px;
-    right: 14px;
-    height: var(--stack-height, 580px);
+    top: 22px;
+    left: 26px;
+    right: 26px;
     z-index: 10;
     display: flex;
     flex-direction: column;
-    justify-content: flex-start;
-    overflow: visible;
 }
 
-/* Each Folder Item in the Stack */
 .dossier-folder-item {
+    --depth: 1;
+    --lift: 0px;
     position: relative;
-    height: 26px;
     flex: 0 0 26px;
-    min-height: 26px;
+    height: 26px;
     cursor: pointer;
-    transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.3, 1), box-shadow 0.22s ease;
-    transform-origin: center bottom;
+    outline: none;
+    /* Дальние папки уже и темнее — перспектива внутри ниши */
+    transform: translateY(var(--lift)) scaleX(calc(0.93 + 0.07 * var(--depth)));
+    filter: brightness(calc(0.62 + 0.38 * var(--depth)));
+    transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.3, 1), filter 0.22s ease;
 }
 
-/* Hover: Folder rises up slightly in place without coming to foreground */
-.dossier-folder-item:hover {
-    transform: translateY(-8px);
+.dossier-folder-item[hidden] { display: none; }
+
+.dossier-folder-item:hover,
+.dossier-folder-item:focus-visible {
+    --lift: -10px;
+    filter: brightness(1.06);
 }
 
-.dossier-folder-item:hover .folder-tab {
-    background: linear-gradient(180deg, #fff2cb 0%, #ebd49f 100%);
-    border-color: #ba9352;
-    color: #120b04;
-    box-shadow: 
-        0 -3px 8px rgba(212, 175, 55, 0.35);
+.dossier-folder-item:focus-visible .folder-tab {
+    outline: 2px solid var(--metal-chrome);
+    outline-offset: 1px;
 }
 
-.dossier-folder-item:hover .folder-body {
-    background: linear-gradient(180deg, #f7e4be 0%, #ecd09e 28%, #d8b77f 70%, #c9a566 100%);
-    border-color: #ba9352;
-    box-shadow: 
-        0 12px 24px rgba(0, 0, 0, 0.55),
-        0 2px 5px rgba(0, 0, 0, 0.3),
-        inset 0 1px 3px rgba(255, 255, 255, 0.7);
-}
-
-/* Manila Folder Body (118px tall: heavily overlaps previous folders by ~76px!) */
 .folder-body {
     position: absolute;
     top: 14px;
     left: 0;
     right: 0;
     height: 118px;
-    background: 
-        linear-gradient(180deg, #ebd6ad 0%, #dabf88 28%, #c5a468 70%, #b59355 100%);
+    background: linear-gradient(180deg, #ebd6ad 0%, #dabf88 28%, #c5a468 70%, #b59355 100%);
     border: 1px solid #8e703f;
     border-top: 2px solid #fff6de;
     border-radius: 5px 5px 3px 3px;
-    box-shadow: 
+    box-shadow:
+        0 -6px 10px rgba(0, 0, 0, 0.35),
         0 10px 22px rgba(0, 0, 0, 0.45),
-        0 2px 4px rgba(0, 0, 0, 0.25),
         inset 0 1px 2px rgba(255, 255, 255, 0.6);
     overflow: hidden;
     transition: background 0.2s, box-shadow 0.2s;
 }
 
-.dossier-folder-item:hover .folder-body {
+.dossier-folder-item:hover .folder-body,
+.dossier-folder-item:focus-visible .folder-body {
     background: linear-gradient(180deg, #f7e4be 0%, #ecd09e 28%, #d8b77f 70%, #c9a566 100%);
-    box-shadow: 
+    border-color: #ba9352;
+    box-shadow:
+        0 -8px 14px rgba(0, 0, 0, 0.4),
         0 24px 45px rgba(0, 0, 0, 0.75),
-        0 4px 10px rgba(0, 0, 0, 0.4),
         inset 0 1px 3px rgba(255, 255, 255, 0.8);
 }
 
-/* Sliver of confidential document peeking out from folder flap */
 .folder-paper-peek {
     position: absolute;
     top: 0;
@@ -596,27 +664,25 @@ body:not(.cabinet-ready) .cabinet-cell-bay {
     height: 4px;
     background: #fbf6ec;
     border-bottom: 1px solid #d8caa7;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
     opacity: 0.9;
 }
 
-/* Debossed Cardstock Score / Fold Creases */
-.folder-crease {
+.folder-crease,
+.folder-crease-secondary {
     position: absolute;
-    top: 8px;
     left: 10px;
     right: 10px;
     height: 1px;
+}
+
+.folder-crease {
+    top: 8px;
     background: rgba(90, 65, 30, 0.25);
     box-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 
 .folder-crease-secondary {
-    position: absolute;
     top: 14px;
-    left: 10px;
-    right: 10px;
-    height: 1px;
     background: rgba(90, 65, 30, 0.18);
     box-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
 }
@@ -629,13 +695,10 @@ body:not(.cabinet-ready) .cabinet-cell-bay {
     height: 22px;
     border: 2px solid #8e9fae;
     border-radius: 4px;
-    background: transparent;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
-    z-index: 5;
     opacity: 0.75;
 }
 
-/* Folder Cover Content (Stamp & File Number) */
 .folder-cover-content {
     position: absolute;
     bottom: 12px;
@@ -650,381 +713,54 @@ body:not(.cabinet-ready) .cabinet-cell-bay {
 .folder-stamp {
     font-family: var(--font-typewriter);
     font-size: 0.62rem;
-    font-weight: 700;
     color: #8b342a;
     letter-spacing: 1.5px;
     border: 1px dashed rgba(139, 52, 42, 0.55);
     padding: 2px 6px;
     border-radius: 2px;
     transform: rotate(-2deg);
-    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
     opacity: 0.88;
 }
 
 .folder-case-number {
     font-family: var(--font-mono);
     font-size: 0.66rem;
-    font-weight: 700;
     color: #4a3821;
     letter-spacing: 1px;
-    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
-/* Staggered Folder Tab at the Top */
 .folder-tab {
     position: absolute;
     top: -4px;
     height: 32px;
     min-width: 80px;
-    max-width: 108px;
+    max-width: 112px;
     background: linear-gradient(180deg, #eed8aa 0%, #dec595 100%);
     border: 1px solid #917544;
     border-bottom: none;
     border-radius: 6px 6px 0 0;
-    box-shadow: 
-        0 -2px 5px rgba(0,0,0,0.3),
-        inset 0 1px 1px rgba(255,255,255,0.6);
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.6);
     display: flex;
     align-items: center;
     gap: 7px;
     padding: 0 8px;
-    font-size: 0.72rem;
-    font-weight: 700;
     color: #24190f;
-    letter-spacing: 0.5px;
-    transition: all 0.2s ease;
+    transition: background 0.2s ease;
     z-index: 3;
 }
 
-/* Staggered Tab Slots (0, 1, 2, 3, 4 across width) */
+.dossier-folder-item:hover .folder-tab,
+.dossier-folder-item:focus-visible .folder-tab {
+    background: linear-gradient(180deg, #fff2cb 0%, #ebd49f 100%);
+    border-color: #ba9352;
+}
+
 .tab-slot-0 { left: 3%; }
 .tab-slot-1 { left: 23%; }
 .tab-slot-2 { left: 43%; }
 .tab-slot-3 { left: 63%; }
-.tab-slot-4 { right: 3%; left: auto; }
+.tab-slot-4 { right: 3%; }
 
-/* ==========================================================================
-   LAYER 3: PULL-OUT DRAWER FRONT PLATES ("ФАСАДЫ ВЫДВИЖНЫХ ЯЩИКОВ")
-   ========================================================================== */
-
-/* 3A: Industrial Metal Drawer Front (Same size in closed and open state, slides down when opened) */
-.drawer-face {
-    position: absolute;
-    top: 4px;
-    left: 4px;
-    right: 4px;
-    height: 512px;
-    z-index: 25;
-    background: 
-        radial-gradient(circle at 50% 20%, #2f3a42 0%, #1a2126 100%),
-        linear-gradient(180deg, #273138 0%, #151a1e 100%);
-    border: 2px solid #3c4b57;
-    border-radius: 6px;
-    cursor: pointer;
-    box-shadow: 
-        0 8px 18px rgba(0, 0, 0, 0.8),
-        inset 0 1px 0 rgba(255, 255, 255, 0.12),
-        inset 0 0 16px rgba(0, 0, 0, 0.6);
-    transform: translateY(0);
-    transition: transform 0.42s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, box-shadow 0.25s ease;
-    overflow: hidden;
-}
-
-.drawer-column:not(.active-open) .drawer-face:hover {
-    transform: translateY(-2px) scale(1.006);
-    border-color: var(--metal-highlight);
-    box-shadow: 
-        0 14px 28px rgba(0, 0, 0, 0.9),
-        0 0 18px rgba(148, 169, 186, 0.25);
-}
-
-/* Open drawer face: SLIDES DOWN at full 520px size! */
-.drawer-column.active-open .drawer-face {
-    transform: translateY(var(--slide-down-dist, 610px));
-    z-index: 22;
-    border-color: #485b6b;
-    box-shadow: 
-        0 24px 50px rgba(0, 0, 0, 0.95),
-        0 -8px 20px rgba(0, 0, 0, 0.8),
-        inset 0 1px 0 rgba(255, 255, 255, 0.2);
-}
-
-.drawer-column.active-open .drawer-face:hover {
-    border-color: var(--metal-highlight);
-    box-shadow: 
-        0 28px 60px rgba(0, 0, 0, 0.98),
-        0 0 22px rgba(148, 169, 186, 0.35);
-}
-
-/* Top beveled metal lip of the extended drawer door */
-.drawer-column.active-open .drawer-face::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 6px;
-    background: linear-gradient(180deg, #a4bccd 0%, #445460 50%, #20272c 100%);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
-    z-index: 10;
-}
-
-/* Stamped Recessed Metal Panel on Drawer Face */
-.drawer-stamped-panel {
-    position: absolute;
-    inset: 16px 12px;
-    border: 2px solid #1c2429;
-    border-top: 2px solid #3a4751;
-    border-bottom: 2px solid #111518;
-    background: linear-gradient(180deg, #222b31 0%, #192025 45%, #13181c 100%);
-    border-radius: 4px;
-    box-shadow: 
-        inset 0 3px 8px rgba(0, 0, 0, 0.75),
-        0 1px 0 rgba(255, 255, 255, 0.08);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding-top: 22px;
-}
-
-/* Industrial Lock Cylinder on Drawer */
-.drawer-lock-unit {
-    position: absolute;
-    top: 12px;
-    right: 14px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    pointer-events: none;
-}
-
-.lock-cylinder {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 35% 35%, #9ab0bf 0%, #566877 60%, #20282f 100%);
-    border: 2px solid #151b20;
-    box-shadow: 
-        0 2px 4px rgba(0,0,0,0.8),
-        inset 0 1px 1px rgba(255,255,255,0.6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.lock-slot {
-    width: 2.5px;
-    height: 9px;
-    background: #090c0e;
-    border-radius: 1px;
-    box-shadow: inset 0 0 2px #000;
-}
-
-.lock-code {
-    font-family: var(--font-mono);
-    font-size: 0.58rem;
-    font-weight: 700;
-    color: #6c7f8f;
-    letter-spacing: 1px;
-}
-
-/* Technical Serial Stencil on Drawer */
-.drawer-stencil-tag {
-    position: absolute;
-    top: 14px;
-    left: 14px;
-    font-family: var(--font-mono);
-    font-size: 0.58rem;
-    font-weight: 700;
-    color: #556977;
-    letter-spacing: 1.5px;
-    pointer-events: none;
-}
-
-/* Stamped Horizontal Stiffening Ribs */
-.drawer-stiffening-ribs {
-    margin-top: 48px;
-    width: 82%;
-    height: 6px;
-    background: linear-gradient(180deg, #101518 0%, #2b353d 50%, #101518 100%);
-    border-radius: 3px;
-    box-shadow: 
-        0 1px 0 rgba(255,255,255,0.06),
-        inset 0 1px 2px rgba(0,0,0,0.8);
-    pointer-events: none;
-}
-
-.drawer-sub-stamp {
-    margin-top: 22px;
-    font-family: var(--font-typewriter);
-    font-size: 0.6rem;
-    color: #4b5a65;
-    letter-spacing: 1.5px;
-    opacity: 0.75;
-    pointer-events: none;
-    text-shadow: 0 1px 0 rgba(255,255,255,0.08);
-}
-
-
-
-/* Corner Rivets on Drawer Faces */
-.drawer-rivet {
-    position: absolute;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 35% 35%, var(--metal-chrome) 0%, var(--metal-sheen) 60%, #182025 100%);
-    box-shadow: 0 1px 2px rgba(0,0,0,0.8);
-    pointer-events: none;
-}
-
-.r-tl { top: 8px; left: 8px; }
-.r-tr { top: 8px; right: 8px; }
-.r-bl { bottom: 8px; left: 8px; }
-.r-br { bottom: 8px; right: 8px; }
-
-/* Metallic Label Holder on Drawer */
-.steel-label-holder {
-    background: linear-gradient(180deg, #182025 0%, #0d1114 100%);
-    border: 2px solid #556776;
-    border-radius: 4px;
-    padding: 8px 18px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    box-shadow: 
-        0 4px 10px rgba(0,0,0,0.7),
-        inset 0 0 8px rgba(0,0,0,0.9),
-        0 0 8px rgba(148, 169, 186, 0.2);
-    position: relative;
-    min-width: 154px;
-    margin-top: 52px;
-}
-
-.steel-label-holder.mini {
-    margin-top: 4px;
-    padding: 4px 14px;
-    min-width: 110px;
-    border-width: 2px;
-}
-
-.label-rivets {
-    position: absolute;
-    top: 4px;
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    padding: 0 8px;
-    pointer-events: none;
-}
-
-.tiny-bolt {
-    font-size: 0.5rem;
-    color: #637787;
-    opacity: 0.8;
-}
-
-.drawer-tag {
-    font-family: var(--font-mono);
-    font-size: 0.65rem;
-    letter-spacing: 2px;
-    color: #7b8e9f;
-}
-
-.steel-label-holder.mini .drawer-tag {
-    font-size: 0.58rem;
-    letter-spacing: 1.5px;
-}
-
-.drawer-alpha {
-    font-family: var(--font-heading);
-    font-size: 1.85rem;
-    font-weight: 900;
-    letter-spacing: 3px;
-    color: var(--metal-chrome);
-    text-shadow: 0 2px 4px rgba(0,0,0,0.95);
-    line-height: 1.1;
-    margin: 2px 0;
-}
-
-.steel-label-holder.mini .drawer-alpha {
-    font-size: 1.15rem;
-    letter-spacing: 2px;
-    margin: 1px 0;
-}
-
-.drawer-count-badge {
-    font-family: var(--font-mono);
-    font-size: 0.65rem;
-    color: #8da1b3;
-    border-top: 1px dashed rgba(141, 161, 179, 0.3);
-    margin-top: 2px;
-    padding-top: 2px;
-    letter-spacing: 1px;
-}
-
-.steel-label-holder.mini .drawer-count-badge {
-    font-size: 0.58rem;
-}
-
-/* Heavy Industrial Steel Handle */
-.industrial-metal-handle {
-    margin-top: 26px;
-    width: 120px;
-    height: 38px;
-    display: flex;
-    align-items: center;
-    position: relative;
-}
-
-.drawer-front-plate .industrial-metal-handle {
-    margin-top: 0;
-    width: 90px;
-    height: 28px;
-}
-
-.handle-bracket {
-    width: 18px;
-    height: 34px;
-    background: linear-gradient(180deg, #4f5f6d 0%, #29333b 100%);
-    border: 2px solid #637787;
-    border-radius: 4px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.7);
-    z-index: 2;
-}
-
-.drawer-front-plate .handle-bracket {
-    width: 14px;
-    height: 26px;
-}
-
-.handle-steel-bar {
-    flex: 1;
-    height: 18px;
-    background: linear-gradient(180deg, #788a99 0%, #d8e3ed 30%, #566775 70%, #2f3840 100%);
-    border-radius: 2px;
-    box-shadow: 
-        0 5px 12px rgba(0,0,0,0.8),
-        inset 0 1px 1px rgba(255,255,255,0.5);
-    margin: 0 -4px;
-    z-index: 3;
-}
-
-.drawer-front-plate .handle-steel-bar {
-    height: 13px;
-}
-
-.industrial-metal-handle.mini {
-    margin-top: 0;
-    width: 70px;
-    height: 24px;
-}
-
-.industrial-metal-handle.mini .handle-steel-bar {
-    height: 12px;
-}
-
-/* Hero Mini Avatar in Tab */
 .tab-hero-avatar {
     width: 18px;
     height: 18px;
@@ -1032,76 +768,414 @@ body:not(.cabinet-ready) .cabinet-cell-bay {
     object-fit: cover;
     border: 1px solid #6b5025;
     background: #2b1f14;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.4);
     flex-shrink: 0;
 }
 
 .tab-hero-name {
     font-family: var(--font-typewriter);
     font-weight: 700;
-    font-size: 0.70rem;
+    font-size: 0.7rem;
     line-height: 1.25;
     letter-spacing: 0.5px;
     padding-top: 2px;
-    white-space: normal;
-    word-break: normal;
-    overflow-wrap: break-word;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    text-shadow: 0 1px 0 rgba(255,255,255,0.4);
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
 }
-
-.tab-badge {
-    font-size: 0.62rem;
-    background: rgba(30, 20, 10, 0.15);
-    padding: 1px 4px;
-    border-radius: 2px;
-    color: #4f3b1e;
-    margin-left: auto;
-}
-
-
 
 /* ==========================================================================
-   CABINET STATUS BAR
+   PULL-OUT DRAWERS
+   .drawer-clip  — обрезает всё, что выше проёма ячейки (короб «внутри» шкафа)
+   .drawer       — фасад + короб, едут вниз (к зрителю) на --pull
+   .drawer-box   — короб, видимый сверху: стенки, направляющие, папки
+   Тайминги совпадают со звуком: удар об упор у открытия ≈0.95 с,
+   у закрытия ≈0.65 с (assets/sounds/*.mp3).
    ========================================================================== */
 
-.cabinet-status-bar {
-    max-width: 1380px;
-    width: 100%;
-    margin-top: 18px;
-    background: rgba(20, 25, 29, 0.95);
-    border: 1px solid #36424b;
+.drawer-clip {
+    position: absolute;
+    top: 0;
+    left: -14px;
+    right: -14px;
+    height: calc(var(--cell-h) + var(--pull) + 60px);
+    padding: 0 14px;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 30;
+}
+
+.cell.is-open { z-index: 5; }
+
+.drawer {
+    position: relative;
+    height: var(--cell-h);
+    transform: translateY(0);
+    /* закрытие: разгон и удар об корпус */
+    transition: transform 0.68s cubic-bezier(0.5, 0, 0.8, 0.7);
+}
+
+.cell.is-open .drawer {
+    transform: translateY(var(--pull));
+    /* открытие: тяжёлый ход по направляющим до упора */
+    transition: transform 0.98s cubic-bezier(0.35, 0.1, 0.7, 0.92);
+}
+
+body:not(.cabinet-ready) .drawer { transition: none; }
+
+/* Короб над фасадом. Слегка сужается кверху — дальний край дальше от зрителя */
+.drawer-box {
+    position: absolute;
+    left: 4px;
+    right: 4px;
+    bottom: 100%;
+    height: var(--pull);
+    pointer-events: auto;
+    clip-path: polygon(2.5% 0, 97.5% 0, 100% 100%, 0 100%);
+    background:
+        repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.018) 0 1px, transparent 1px 5px),
+        linear-gradient(180deg, #0b0e10 0%, #161c21 55%, #20282e 100%);
+}
+
+/* Верхние кромки боковых стенок короба */
+.drawer-side {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 14px;
+    z-index: 15;
+    pointer-events: none;
+}
+
+.drawer-side.left {
+    left: 8px;
+    background: linear-gradient(90deg, #2c363e 0%, #b3c3cf 30%, #5d6e7b 60%, #1b2227 100%);
+    box-shadow: 4px 0 8px rgba(0, 0, 0, 0.6);
+}
+
+.drawer-side.right {
+    right: 8px;
+    background: linear-gradient(270deg, #232b31 0%, #8798a6 30%, #4d5c68 60%, #161b1f 100%);
+    box-shadow: -4px 0 8px rgba(0, 0, 0, 0.6);
+}
+
+/* Телескопические направляющие по краям */
+.drawer-rail {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 8px;
+    z-index: 14;
+    background:
+        repeating-linear-gradient(180deg, transparent 0 46px, rgba(0, 0, 0, 0.6) 46px 48px),
+        linear-gradient(90deg, #11161a 0%, #6f8190 50%, #11161a 100%);
+}
+
+.drawer-rail.left { left: 0; }
+.drawer-rail.right { right: 0; }
+
+/* Задняя стенка короба (дальний край) */
+.drawer-back-wall {
+    position: absolute;
+    top: 0;
+    left: 8px;
+    right: 8px;
+    height: 12px;
+    z-index: 15;
+    background: linear-gradient(180deg, #8a9cab 0%, #3c4853 60%, #0e1215 100%);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.7);
+}
+
+/* Затенение: шкаф сверху, фасад снизу */
+.drawer-box-shade {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    pointer-events: none;
+    background:
+        linear-gradient(180deg, rgba(0, 0, 0, 0.55) 0%, transparent 90px),
+        linear-gradient(0deg, rgba(0, 0, 0, 0.45) 0%, transparent 26px);
+}
+
+/* Фасад ящика */
+.drawer-front {
+    position: absolute;
+    inset: 0;
+    pointer-events: auto;
+    cursor: pointer;
+    outline: none;
     border-radius: 4px;
-    padding: 8px 18px;
+    background:
+        repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.022) 0 1px, transparent 1px 3px),
+        radial-gradient(ellipse at 30% 10%, rgba(255, 255, 255, 0.09) 0%, transparent 55%),
+        linear-gradient(180deg, #3d4955 0%, #2c353d 45%, #1f262c 100%);
+    border: 1px solid #586a78;
+    box-shadow:
+        inset 0 2px 0 rgba(255, 255, 255, 0.16),
+        inset 0 -3px 0 rgba(0, 0, 0, 0.5),
+        inset 3px 0 0 rgba(255, 255, 255, 0.05),
+        inset -3px 0 0 rgba(0, 0, 0, 0.35),
+        0 4px 10px rgba(0, 0, 0, 0.6);
+    transition: box-shadow 0.4s ease, filter 0.3s ease;
+}
+
+/* Закрытый ящик чуть «подаётся» при наведении */
+.cell:not(.is-open) .drawer-front:hover,
+.cell:not(.is-open) .drawer-front:focus-visible {
+    filter: brightness(1.08);
+}
+
+.drawer-front:focus-visible {
+    box-shadow: 0 0 0 2px var(--metal-highlight), inset 0 2px 0 rgba(255, 255, 255, 0.16);
+}
+
+/* Выдвинутый ящик ближе к зрителю: верхний торец фасада и тень на пол */
+.drawer-front::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    right: -1px;
+    height: 0;
+    background: linear-gradient(180deg, #b4c5d2 0%, #56677a 55%, #20272c 100%);
+    border-radius: 4px 4px 0 0;
+    transition: height 0.3s ease;
+}
+
+.cell.is-open .drawer-front {
+    box-shadow:
+        inset 0 2px 0 rgba(255, 255, 255, 0.16),
+        inset 0 -3px 0 rgba(0, 0, 0, 0.5),
+        0 -14px 22px rgba(0, 0, 0, 0.75),
+        0 34px 50px rgba(0, 0, 0, 0.85);
+}
+
+.cell.is-open .drawer-front::before { height: 7px; }
+
+/* Место под выдвинутые ящики зарезервировано заранее и не меняется,
+   поэтому при открытии/закрытии высота страницы (и фон) остаются на месте */
+.cabinet {
+    margin-bottom: calc(var(--pull-max, 540px) - 20px);
+}
+
+body:not(.cabinet-ready) .cell { transition: none; }
+
+/* Горизонтальная ручка-скоба */
+.drawer-handle {
+    margin-top: 30px;
+    width: 46%;
+    min-width: 120px;
+    height: 36px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    font-size: 0.78rem;
-    color: #9ab0c2;
-    flex-wrap: wrap;
 }
 
-.status-indicator {
-    color: #55d677;
-    font-weight: 700;
-    letter-spacing: 1px;
+.handle-bracket {
+    width: 18px;
+    height: 34px;
+    flex-shrink: 0;
+    background: linear-gradient(180deg, #5b6b78 0%, #29333b 100%);
+    border: 2px solid #6f8494;
+    border-radius: 4px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
+    z-index: 2;
 }
 
-.status-tip {
-    color: #cbd8e3;
+.handle-bar {
+    flex: 1;
+    height: 16px;
+    margin: 0 -4px;
+    border-radius: 3px;
+    background: linear-gradient(180deg, #788a99 0%, #e1eaf1 32%, #566775 70%, #2f3840 100%);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.8), inset 0 1px 1px rgba(255, 255, 255, 0.5);
+    z-index: 3;
 }
 
-.active-count-label {
+/* Внутренняя штампованная панель фасада */
+.door-panel {
+    position: absolute;
+    inset: 22px 20px;
+    border-radius: 3px;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.06), rgba(0, 0, 0, 0.18));
+    box-shadow:
+        inset 0 2px 1px rgba(0, 0, 0, 0.55),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.1),
+        0 1px 0 rgba(255, 255, 255, 0.08),
+        0 -1px 0 rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 46px;
+}
+
+.door-rivet {
+    position: absolute;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, var(--metal-chrome) 0%, var(--metal-sheen) 60%, #182025 100%);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.r-tl { top: 8px; left: 8px; }
+.r-tr { top: 8px; right: 8px; }
+.r-bl { bottom: 8px; left: 8px; }
+.r-br { bottom: 8px; right: 8px; }
+
+.door-stencil {
+    position: absolute;
+    top: 14px;
+    left: 14px;
     font-family: var(--font-mono);
-    color: var(--metal-chrome);
-    border: 1px solid rgba(148, 169, 186, 0.35);
-    background: #141a1e;
-    padding: 2px 10px;
-    border-radius: 2px;
+    font-size: 0.58rem;
+    letter-spacing: 1.5px;
+    color: #6a7d8c;
+}
+
+/* Рамка-кармашек с бумажной карточкой */
+.card-holder {
+    position: relative;
+    padding: 6px 8px 8px;
+    min-width: 200px;
+    max-width: 88%;
+    background: linear-gradient(180deg, #9fb0bd 0%, #5d6e7b 50%, #3b4752 100%);
+    border-radius: 3px;
+    box-shadow:
+        0 4px 8px rgba(0, 0, 0, 0.65),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+/* Загнутые кромки кармашка */
+.card-holder::before,
+.card-holder::after {
+    content: '';
+    position: absolute;
+    top: 6px;
+    bottom: 8px;
+    width: 8px;
+    background: linear-gradient(90deg, #8a9cab, #4f5f6c);
+    z-index: 2;
+}
+
+.card-holder::before { left: 4px; border-radius: 2px 0 0 2px; }
+.card-holder::after { right: 4px; transform: scaleX(-1); border-radius: 2px 0 0 2px; }
+
+.index-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 6px 16px 5px;
+    background:
+        linear-gradient(rgba(170, 60, 60, 0.35) 0 0) 0 21px / 100% 1px no-repeat,
+        linear-gradient(180deg, #f3ead6 0%, #e3d5b8 100%);
+    color: #1d1a16;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.35);
+}
+
+.card-tag {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 3px;
+    color: #5b4e3d;
+}
+
+.card-alpha {
+    font-family: var(--font-heading);
+    font-size: 1.9rem;
+    font-weight: 900;
+    letter-spacing: 3px;
+    line-height: 1.15;
+    margin-top: 4px;
+}
+
+/* Все буквы диапазона мелким шрифтом */
+.card-letters {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.32em;
+    color: #4a4033;
+    text-align: center;
+    padding-left: 0.32em; /* компенсация letter-spacing у последней буквы */
+    margin: 1px 0 3px;
+}
+
+.card-count {
+    font-family: var(--font-typewriter);
+    font-size: 0.64rem;
+    letter-spacing: 1px;
+    color: #8b342a;
+    border-top: 1px dashed rgba(90, 70, 40, 0.4);
+    padding-top: 2px;
+    width: 100%;
+    text-align: center;
+}
+
+/* Вентиляционные просечки */
+.door-louvers {
+    margin-top: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    width: 46%;
+}
+
+.door-louvers span {
+    height: 6px;
+    border-radius: 3px;
+    background: linear-gradient(180deg, #06080a 0%, #1a2126 100%);
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.12),
+        inset 0 2px 2px rgba(0, 0, 0, 0.9);
+}
+
+/* Замок над ручкой, у свободного края дверцы */
+.door-lock {
+    position: absolute;
+    right: 14px;
+    top: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.lock-cylinder {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #c3d1db 0%, #6f8291 55%, #20282f 100%);
+    border: 2px solid #151b20;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.8), 0 0 0 3px rgba(0, 0, 0, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.lock-slot {
+    width: 3px;
+    height: 10px;
+    background: #090c0e;
+    border-radius: 1px;
+}
+
+.lock-code {
+    font-family: var(--font-mono);
+    font-size: 0.55rem;
+    letter-spacing: 1px;
+    color: #7a8d9c;
+}
+
+.door-sub-stamp {
+    position: absolute;
+    bottom: 14px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-family: var(--font-typewriter);
+    font-size: 0.58rem;
+    letter-spacing: 1.5px;
+    color: #56656f;
 }
 
 /* ==========================================================================
@@ -1135,6 +1209,7 @@ body:not(.cabinet-ready) .cabinet-cell-bay {
     width: 100%;
     max-width: 1050px;
     max-height: 92vh;
+    max-height: 92dvh;
     background: linear-gradient(180deg, #c4a974 0%, #aa8d58 100%);
     border: 8px solid #3d4a54;
     border-radius: 8px;
@@ -1191,7 +1266,8 @@ body:not(.cabinet-ready) .cabinet-cell-bay {
     border: 1px solid #cfbe9f;
     box-shadow: inset 0 0 25px rgba(100, 70, 30, 0.15);
     overflow-y: auto;
-    max-height: calc(92vh - 85px);
+    flex: 1 1 auto;
+    min-height: 0;
 }
 
 .dossier-paper::-webkit-scrollbar {
@@ -1373,6 +1449,7 @@ body:not(.cabinet-ready) .cabinet-cell-bay {
 
 .spec-val {
     text-align: right;
+    white-space: nowrap;
     font-family: var(--font-mono);
     font-weight: 700;
     color: #1c150e;
@@ -1578,55 +1655,134 @@ body:not(.cabinet-ready) .cabinet-cell-bay {
     letter-spacing: 1.5px;
 }
 
+
+.dossier-paper { user-select: text; }
+
+/* Вымаранные фрагменты: значения, которых нет в исходных данных */
+.redacted {
+    display: inline-block;
+    background: #1d1a17;
+    color: transparent;
+    border-radius: 1px;
+    line-height: 1;
+    padding: 0 2px;
+    transform: rotate(-0.6deg);
+    cursor: help;
+    user-select: none;
+}
+
 /* ==========================================================================
-   RESPONSIVE DESIGN
+   RESPONSIVE
    ========================================================================== */
 
-@media (max-width: 1080px) {
-    .drawers-container {
-        grid-template-columns: 1fr;
-        gap: 20px;
+/* Сенсорные экраны: без «залипшего» hover у папок и ящиков */
+@media (hover: none) {
+    .dossier-folder-item:hover:not(:focus-visible) {
+        --lift: 0px;
+        filter: brightness(calc(0.62 + 0.38 * var(--depth)));
     }
+    .cell:not(.is-open) .drawer-front:hover { filter: none; }
+}
 
-    .drawer-column:not(.active-open) {
-        display: none;
-    }
+/* Планшет в альбомной ориентации / небольшой ноутбук */
+@media (max-width: 1100px) {
+    .cabinet-body { padding: 18px 22px 30px; }
+    .cabinet-cells { gap: 26px; }
+    .card-holder { min-width: 0; }
+    .card-alpha { font-size: 1.55rem; }
+    .card-letters { white-space: nowrap; letter-spacing: 0.16em; padding-left: 0.16em; }
+    .door-stencil { display: none; }
+    .folder-stamp { display: none; }
+    .drawer-handle { min-width: 96px; }
+    .door-louvers { width: 60%; }
+    .doc-grid { grid-template-columns: 1fr; }
+    .mugshot-frame { max-width: 280px; margin: 0 auto; }
+}
 
-    .doc-grid {
-        grid-template-columns: 1fr;
-    }
+@media (max-width: 960px) {
+    .header-content { gap: 12px 20px; }
+    .title-group { min-width: 0; }
+    .steel-plaque { font-size: 0.7rem; letter-spacing: 1.5px; }
+    .folder-tab { min-width: 70px; padding: 0 6px; gap: 5px; }
+    .tab-hero-name { font-size: 0.64rem; letter-spacing: 0.3px; }
+    .tab-hero-avatar { width: 16px; height: 16px; }
+}
 
-    .mugshot-frame {
-        max-width: 280px;
-        margin: 0 auto;
+/* Узкий экран: ячейки одна над другой */
+@media (max-width: 860px) {
+    .cabinet-stage { padding: 36px 16px 40px; }
+    .cabinet { margin-bottom: 0; }
+    .cabinet-body { padding: 16px 20px 28px; }
+    .cabinet-cells { grid-template-columns: 1fr; gap: 46px; }
+    .cabinet-frame-top { margin-bottom: 36px; }
+    .steel-plaque { font-size: 0.62rem; letter-spacing: 1px; padding: 6px 10px; }
+    .cabinet-top { height: 22px; }
+    .door-stencil { display: block; }
+    .folder-tab { min-width: 80px; max-width: 120px; }
+    .tab-hero-name { font-size: 0.7rem; }
+    .folder-stamp { display: inline; }
+
+    /* В одну колонку ящик может выдвинуться только раздвинув соседние ячейки.
+       Фон при этом фиксирован, сдвигается лишь содержимое ниже ящика. */
+    .cell { transition: margin-bottom 0.68s cubic-bezier(0.5, 0, 0.8, 0.7); }
+    .cell.is-open {
+        margin-bottom: calc(var(--pull) + 10px);
+        transition: margin-bottom 0.98s cubic-bezier(0.35, 0.1, 0.7, 0.92);
     }
 }
 
 @media (max-width: 650px) {
-    .archive-header {
-        padding: 12px 14px;
-    }
+    .archive-header { padding: 12px 14px; }
+    .deadlock-title-logo { height: 26px; }
+    .archive-title-suffix { font-size: 1.3rem; padding-left: 10px; letter-spacing: 3px; }
+    .header-controls { width: 100%; }
+    .search-box { flex: 1; min-width: 0; }
+    .search-box input { width: 100%; min-width: 0; }
+    .dossier-modal { padding: 8px; }
+    .dossier-document-envelope { border-width: 5px; max-height: 96vh; max-height: 96dvh; }
+    .dossier-paper { padding: 16px 14px; margin: 6px; }
+    .doc-header { padding-right: 0; padding-top: 34px; }
+    .doc-file-number { font-size: 1.35rem; }
+    .doc-classification-stamp { font-size: 0.7rem; }
+    .modal-close-btn { top: 10px; right: 10px; padding: 5px 10px; font-size: 0.72rem; }
+    .dossier-nav-bar { padding: 8px 10px; gap: 8px; }
+    .dossier-nav-btn { padding: 6px 10px; font-size: 0.72rem; }
+    .dossier-counter-text { font-size: 0.7rem; text-align: center; letter-spacing: 0.5px; }
+    .ability-header { flex-wrap: wrap; }
+    .ability-type { margin-left: 0; }
+    .spec-label { white-space: normal; }
+}
 
-    .deadlock-title-logo {
-        height: 26px;
-    }
+@media (max-width: 520px) {
+    .nav-label { display: none; }
+    .dossier-nav-btn { font-size: 1rem; padding: 4px 16px; }
+}
 
-    .archive-title-suffix {
-        font-size: 1.3rem;
-        padding-left: 10px;
-    }
+/* Маленькие телефоны */
+@media (max-width: 420px) {
+    .emblem-wrapper { width: 44px; height: 44px; }
+    .deadlock-title-logo { height: 22px; max-width: 150px; }
+    .archive-title-suffix { font-size: 1.05rem; }
+    .sound-text { display: none; }
+    .cabinet-stage { padding: 28px 8px 30px; }
+    .cabinet-body { padding: 14px 12px 24px; }
+    .cabinet-rivet { display: none; }
+    .steel-plaque { font-size: 0.56rem; gap: 8px; }
+    .door-panel { inset: 18px 12px; }
+    .card-alpha { font-size: 1.4rem; }
+    .card-letters { letter-spacing: 0.2em; padding-left: 0.2em; }
+    .archive-title-container { flex-wrap: nowrap; gap: 8px; }
+    .archive-title-suffix { padding-left: 8px; letter-spacing: 2px; }
+    .folders-stack { left: 20px; right: 20px; }
+    .folder-tab { min-width: 66px; max-width: 104px; padding: 0 5px; }
+    .tab-hero-name { font-size: 0.62rem; }
+    .folder-stamp { display: none; }
+    .doc-grid { gap: 14px; }
+    .growth-grid { grid-template-columns: 1fr; }
+}
 
-    .search-box input {
-        width: 140px;
-    }
-
-    .dossier-paper {
-        padding: 16px 14px;
-    }
-
-    .folder-tab {
-        min-width: 80px;
-        max-width: 115px;
-        font-size: 0.68rem;
-    }
+/* Низкие экраны (телефон в альбомной ориентации) */
+@media (max-height: 500px) and (orientation: landscape) {
+    .dossier-document-envelope { max-height: 98vh; max-height: 98dvh; }
+    .dossier-nav-bar { padding: 4px 12px; }
 }

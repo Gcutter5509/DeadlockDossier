@@ -1,24 +1,42 @@
 /**
  * DEADLOCK DOSSIER — INTERACTIVE ARCHIVE ENGINE
- * Implements drawer mechanics, staggered folder tabs, hover elevation,
- * full confidential dossiers, search, and synthesized sound effects.
+ * Стальной шкаф с ячейками: распашные дверцы, папки внутри ячеек,
+ * поиск, полноэкранное досье и процедурные звуки.
  */
 
-// Sound Engine using Web Audio API (100% procedural, no external audio files required)
+// ---------------------------------------------------------------------------
+// Звук: записи ящика + процедурный шелест и штамп (Web Audio API)
+// ---------------------------------------------------------------------------
 class ArchiveSoundEngine {
     constructor() {
         this.ctx = null;
         this.enabled = true;
+        // Браузеры запрещают звук до первого действия пользователя:
+        // до этого момента AudioContext не создаём вообще.
+        this.unlocked = false;
+
+        this.drawerOpen = new Audio('assets/sounds/drawer_open.mp3');
+        this.drawerClose = new Audio('assets/sounds/drawer_close.mp3');
+        [this.drawerOpen, this.drawerClose].forEach(a => {
+            a.preload = 'auto';
+            a.volume = 0.8;
+        });
     }
 
-    init() {
+    unlock() {
+        this.unlocked = true;
+        this.ensureContext();
+    }
+
+    ensureContext() {
+        if (!this.unlocked) return false;
         if (!this.ctx) {
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            this.ctx = new AudioContext();
+            const Ctx = window.AudioContext || window.webkitAudioContext;
+            if (!Ctx) return false;
+            this.ctx = new Ctx();
         }
-        if (this.ctx && this.ctx.state === 'suspended') {
-            this.ctx.resume();
-        }
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+        return true;
     }
 
     toggle() {
@@ -26,22 +44,21 @@ class ArchiveSoundEngine {
         return this.enabled;
     }
 
-    // Gentle paper rustle when hovering over a folder
+    noiseBuffer(seconds, shape) {
+        const size = Math.floor(this.ctx.sampleRate * seconds);
+        const buffer = this.ctx.createBuffer(1, size, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < size; i++) data[i] = (Math.random() * 2 - 1) * shape(i, size);
+        return buffer;
+    }
+
+    // Шелест бумаги при наведении на папку
     playPaperRustle() {
-        if (!this.enabled) return;
-        this.init();
-        if (!this.ctx) return;
-
+        if (!this.enabled || !this.ensureContext()) return;
         try {
-            const bufferSize = this.ctx.sampleRate * 0.12;
-            const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-            const data = buffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) {
-                data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.4));
-            }
-
+            const now = this.ctx.currentTime;
             const noise = this.ctx.createBufferSource();
-            noise.buffer = buffer;
+            noise.buffer = this.noiseBuffer(0.12, (i, n) => Math.exp(-i / (n * 0.4)));
 
             const filter = this.ctx.createBiquadFilter();
             filter.type = 'bandpass';
@@ -49,125 +66,492 @@ class ArchiveSoundEngine {
             filter.Q.value = 2.5;
 
             const gain = this.ctx.createGain();
-            gain.gain.setValueAtTime(0.04, this.ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.12);
+            gain.gain.setValueAtTime(0.04, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
 
-            noise.connect(filter);
-            filter.connect(gain);
-            gain.connect(this.ctx.destination);
-
-            noise.start();
-        } catch (e) {
-            // Audio error handling
-        }
-    }
-
-    // Heavy wooden/metal drawer slide sound
-    playDrawerSlide() {
-        if (!this.enabled) return;
-        this.init();
-        if (!this.ctx) return;
-
-        try {
-            const now = this.ctx.currentTime;
-            
-            // Sub thud
-            const osc = this.ctx.createOscillator();
-            const oscGain = this.ctx.createGain();
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(110, now);
-            osc.frequency.exponentialRampToValueAtTime(45, now + 0.22);
-            oscGain.gain.setValueAtTime(0.12, now);
-            oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
-            osc.connect(oscGain);
-            oscGain.connect(this.ctx.destination);
-            osc.start(now);
-            osc.stop(now + 0.22);
-
-            // Friction scrape
-            const bufferSize = this.ctx.sampleRate * 0.25;
-            const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-            const data = buffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) {
-                data[i] = (Math.random() * 2 - 1) * 0.5;
-            }
-
-            const noise = this.ctx.createBufferSource();
-            noise.buffer = buffer;
-
-            const filter = this.ctx.createBiquadFilter();
-            filter.type = 'lowpass';
-            filter.frequency.setValueAtTime(800, now);
-            filter.linearRampToValueAtTime ? filter.frequency.linearRampToValueAtTime(300, now + 0.25) : (filter.frequency.value = 300);
-
-            const gain = this.ctx.createGain();
-            gain.gain.setValueAtTime(0.06, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
-
-            noise.connect(filter);
-            filter.connect(gain);
-            gain.connect(this.ctx.destination);
+            noise.connect(filter).connect(gain).connect(this.ctx.destination);
             noise.start(now);
-        } catch (e) {
-            // Audio fallback
-        }
+        } catch (e) { /* звук не критичен */ }
     }
 
-    // Dossier stamp sound when opening document
-    playDossierOpen() {
-        if (!this.enabled) return;
-        this.init();
-        if (!this.ctx) return;
+    // Записанный звук стального ящика картотеки (assets/sounds, CC BY 4.0 — Gravity Sound).
+    // HTMLAudioElement, а не fetch + decodeAudioData: так звук работает и при открытии
+    // index.html напрямую с диска (file://), где fetch заблокирован.
+    playDrawer(opening) {
+        if (!this.enabled || !this.unlocked) return;
+        const next = opening ? this.drawerOpen : this.drawerClose;
+        const other = opening ? this.drawerClose : this.drawerOpen;
+        // Если ящик развернули на полпути — обрываем предыдущий звук
+        other.pause();
+        next.currentTime = 0;
+        next.play().catch(() => {});
+    }
 
+    // Глухой «штамп» при открытии досье
+    playDossierOpen() {
+        if (!this.enabled || !this.ensureContext()) return;
         try {
             const now = this.ctx.currentTime;
             const osc = this.ctx.createOscillator();
             const gain = this.ctx.createGain();
-
             osc.type = 'sine';
             osc.frequency.setValueAtTime(140, now);
             osc.frequency.exponentialRampToValueAtTime(50, now + 0.18);
-
             gain.gain.setValueAtTime(0.18, now);
             gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
-
-            osc.connect(gain);
-            gain.connect(this.ctx.destination);
+            osc.connect(gain).connect(this.ctx.destination);
             osc.start(now);
             osc.stop(now + 0.18);
-        } catch (e) {
-            // Audio fallback
-        }
+        } catch (e) { /* звук не критичен */ }
     }
 }
 
-// Global App State
+// ---------------------------------------------------------------------------
+// Конфигурация секций шкафа
+// ---------------------------------------------------------------------------
+const SECTIONS = [
+    { key: 'A-H', no: '01', from: 'A', to: 'H' },
+    { key: 'I-R', no: '02', from: 'I', to: 'R' },
+    { key: 'S-Z', no: '03', from: 'S', to: 'Z' }
+];
+
+// Геометрия стопки папок (px) — должна совпадать со style.css
+const FOLDER_STEP = 26;        // шаг между ярлычками соседних папок
+const FOLDER_FULL_HEIGHT = 132; // ярлык (14) + тело папки (118)
+const DRAWER_BOX_PADDING = 34;  // задняя стенка короба сверху + зазор у фасада снизу
+
+const heroes = Array.isArray(window.HEROES_DATA) ? window.HEROES_DATA : [];
+
 const state = {
-    activeDrawer: 'A-H', // Defaults to A - H (first drawer)
+    openCells: new Set(['A-H']),
     currentHeroIndex: 0,
     isModalOpen: false,
     searchQuery: '',
     sound: new ArchiveSoundEngine()
 };
 
-// DOM Elements holder
 let elements = {};
+const cells = {}; // key -> { root, door, stack }
 
-function initElements() {
+function letterRange(from, to) {
+    const out = [];
+    for (let c = from.charCodeAt(0); c <= to.charCodeAt(0); c++) out.push(String.fromCharCode(c));
+    return out;
+}
+
+function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, ch => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[ch]));
+}
+
+// Пропуски (▇▇▇) — значения, утерянные при выгрузке данных из игры.
+// Показываем их как вымаранный текст, а не придумываем.
+function renderRedactions(text) {
+    return escapeHtml(text).replace(/▇+/g,
+        '<span class="redacted" title="Значение отсутствует в исходных данных">▇▇▇</span>');
+}
+
+// ---------------------------------------------------------------------------
+// Построение шкафа
+// ---------------------------------------------------------------------------
+function buildCabinet() {
+    const container = elements.cabinetCells;
+    container.innerHTML = '';
+    let maxPull = 0;
+
+    SECTIONS.forEach(section => {
+        const sectionHeroes = heroes.filter(h => h.drawer === section.key);
+        const letters = letterRange(section.from, section.to);
+        const alpha = `${section.from} — ${section.to}`;
+
+        const cell = document.createElement('section');
+        cell.className = 'cell';
+        cell.dataset.cell = section.key;
+        cell.innerHTML = `
+            <div class="cell-label-plate" aria-hidden="true">
+                <span>SEC. ${section.no}</span><b>${alpha}</b>
+            </div>
+            <!-- Пустая ниша шкафа (видна, когда ящик выдвинут) -->
+            <div class="cell-opening" aria-hidden="true">
+                <div class="cell-wall wall-back"></div>
+                <div class="cell-wall wall-top"></div>
+                <div class="cell-wall wall-left"></div>
+                <div class="cell-wall wall-right"></div>
+                <div class="cell-wall wall-floor"></div>
+                <div class="cell-inner-shadow"></div>
+            </div>
+
+            <!-- Ящик: короб с папками + фасад. Всё, что выше проёма, обрезается -->
+            <div class="drawer-clip">
+                <div class="drawer">
+                    <div class="drawer-box">
+                        <div class="drawer-rail left"></div>
+                        <div class="drawer-rail right"></div>
+                        <div class="drawer-side left" aria-hidden="true"></div>
+                        <div class="drawer-side right" aria-hidden="true"></div>
+                        <div class="drawer-back-wall" aria-hidden="true"></div>
+                        <div class="folders-stack" id="stack-${section.key}" aria-label="Досье секции ${alpha}"></div>
+                        <div class="cell-empty-note" hidden>Нет совпадений в секции</div>
+                        <div class="drawer-box-shade" aria-hidden="true"></div>
+                    </div>
+
+                    <div class="drawer-front" role="button" tabindex="0" aria-expanded="false"
+                         aria-label="Ящик ${alpha}" title="Выдвинуть / задвинуть ящик ${alpha}">
+                        <div class="door-rivet r-tl"></div><div class="door-rivet r-tr"></div>
+                        <div class="door-rivet r-bl"></div><div class="door-rivet r-br"></div>
+
+                        <div class="door-panel">
+                            <div class="door-stencil">REG. N.Y.C. // SEC. ${section.no}</div>
+
+                            <div class="door-lock" title="Замок ящика № ${section.no}">
+                                <div class="lock-cylinder"><div class="lock-slot"></div></div>
+                                <span class="lock-code">KEY ${section.no}</span>
+                            </div>
+
+                            <div class="card-holder">
+                                <div class="index-card">
+                                    <span class="card-tag">SECTION ${section.no}</span>
+                                    <span class="card-alpha">${alpha}</span>
+                                    <span class="card-letters">${letters.join(' ')}</span>
+                                    <span class="card-count">${sectionHeroes.length} DOSSIERS</span>
+                                </div>
+                            </div>
+
+                            <div class="drawer-handle">
+                                <span class="handle-bracket"></span>
+                                <span class="handle-bar"></span>
+                                <span class="handle-bracket"></span>
+                            </div>
+
+                            <div class="door-louvers">${'<span></span>'.repeat(5)}</div>
+
+                            <div class="door-sub-stamp">ANOMALY OVERSIGHT // HEAVY SLIDE</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        container.appendChild(cell);
+
+        const stack = cell.querySelector('.folders-stack');
+        const count = sectionHeroes.length;
+        const stackHeight = Math.max(0, count - 1) * FOLDER_STEP + FOLDER_FULL_HEIGHT;
+        stack.style.height = `${stackHeight}px`;
+        // Ящик выдвигается ровно на длину стопки папок + стенки короба
+        const pull = stackHeight + DRAWER_BOX_PADDING;
+        cell.style.setProperty('--pull', `${pull}px`);
+        maxPull = Math.max(maxPull, pull);
+
+        sectionHeroes.forEach((hero, index) => {
+            const folder = createFolderElement(hero);
+            const depth = count > 1 ? index / (count - 1) : 1; // 0 — дальняя папка, 1 — ближняя
+            folder.style.zIndex = index + 1;
+            folder.style.setProperty('--depth', depth.toFixed(3));
+            stack.appendChild(folder);
+        });
+
+        cells[section.key] = {
+            root: cell,
+            door: cell.querySelector('.drawer-front'),
+            stack,
+            emptyNote: cell.querySelector('.cell-empty-note')
+        };
+    });
+
+    document.getElementById('cabinet').style.setProperty('--pull-max', `${maxPull}px`);
+}
+
+function createFolderElement(hero) {
+    const item = document.createElement('div');
+    item.className = 'dossier-folder-item';
+    item.dataset.heroId = hero.id;
+    item.tabIndex = -1;
+    item.setAttribute('role', 'button');
+    item.setAttribute('aria-label', `Досье ${hero.name}`);
+
+    item.innerHTML = `
+        <div class="folder-tab tab-slot-${hero.tabSlot}">
+            <img src="${hero.image}" alt="" class="tab-hero-avatar" loading="lazy">
+            <span class="tab-hero-name">${escapeHtml(hero.name.toUpperCase())}</span>
+        </div>
+        <div class="folder-body">
+            <div class="folder-paper-peek"></div>
+            <div class="folder-crease"></div>
+            <div class="folder-crease-secondary"></div>
+            <div class="folder-metal-clip"></div>
+            <div class="folder-cover-content">
+                <span class="folder-stamp">CONFIDENTIAL</span>
+                <span class="folder-case-number">CASE № ${hero.dossierNo}</span>
+            </div>
+        </div>
+    `;
+
+    item.addEventListener('mouseenter', () => state.sound.playPaperRustle());
+    item.addEventListener('click', e => {
+        e.stopPropagation();
+        openDossierById(hero.id);
+    });
+    item.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            openDossierById(hero.id);
+        }
+    });
+    return item;
+}
+
+// ---------------------------------------------------------------------------
+// Дверцы
+// ---------------------------------------------------------------------------
+function setCellOpen(key, open, playAudio = true) {
+    const cell = cells[key];
+    if (!cell) return;
+    const wasOpen = state.openCells.has(key);
+    if (open) state.openCells.add(key); else state.openCells.delete(key);
+
+    cell.root.classList.toggle('is-open', open);
+    cell.door.setAttribute('aria-expanded', String(open));
+    // Папки в задвинутом ящике недоступны с клавиатуры
+    cell.stack.querySelectorAll('.dossier-folder-item').forEach(f => { f.tabIndex = open ? 0 : -1; });
+
+    if (playAudio && wasOpen !== open) state.sound.playDrawer(open);
+}
+
+function toggleCell(key) {
+    setCellOpen(key, !state.openCells.has(key));
+}
+
+// ---------------------------------------------------------------------------
+// Досье
+// ---------------------------------------------------------------------------
+function openDossierById(heroId) {
+    const index = heroes.findIndex(h => h.id === heroId);
+    if (index !== -1) openDossierByIndex(index);
+}
+
+function openDossierByIndex(index) {
+    if (!heroes.length) return;
+    index = (index + heroes.length) % heroes.length;
+
+    state.currentHeroIndex = index;
+    const hero = heroes[index];
+
+    // Ячейка героя должна быть открыта, чтобы после закрытия досье было видно, откуда оно
+    setCellOpen(hero.drawer, true, false);
+
+    renderDossierContent(hero);
+    elements.dossierCounter.textContent = `ДЕЛО ${index + 1} ИЗ ${heroes.length} [ ${hero.drawer} ]`;
+
+    if (!state.isModalOpen) {
+        elements.modal.classList.add('active');
+        elements.modal.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('modal-open');
+        state.isModalOpen = true;
+        elements.modalCloseBtn.focus({ preventScroll: true });
+    }
+    elements.dossierPaper.scrollTop = 0;
+    state.sound.playDossierOpen();
+}
+
+function closeDossier() {
+    if (!state.isModalOpen) return;
+    elements.modal.classList.remove('active');
+    elements.modal.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('modal-open');
+    state.isModalOpen = false;
+    state.sound.playPaperRustle();
+
+    const folder = document.querySelector(`.dossier-folder-item[data-hero-id="${heroes[state.currentHeroIndex].id}"]`);
+    if (folder) folder.focus({ preventScroll: true });
+}
+
+function renderDossierContent(hero) {
+    const abilitiesHtml = hero.abilities.map((ab, idx) => {
+        const isUlt = idx === 3 || ab.type === 'Ультимейт';
+        const keyLabel = isUlt ? '4 ★ ULT' : ab.key;
+        return `
+            <div class="ability-card ${isUlt ? 'ult-card' : ''}">
+                <div class="ability-header">
+                    <span class="ability-key-badge">${keyLabel}</span>
+                    <span class="ability-name">${escapeHtml(ab.name)}</span>
+                    <span class="ability-type">${escapeHtml(ab.type)}</span>
+                </div>
+                <div class="ability-desc">${renderRedactions(ab.desc)}</div>
+            </div>
+        `;
+    }).join('');
+
+    const w = hero.weapon;
+    const specRows = [
+        ['Урон от пули', w.bulletDamage],
+        ['Урон в секунду (DPS)', w.dps],
+        ['Скорострельность', w.fireRate],
+        ['Боезапас (обойма)', w.ammo],
+        ['Время перезарядки', w.reloadTime],
+        ['Скорость пули', w.bulletVelocity],
+        ['Спад урона по дальности', w.falloff]
+    ].map(([label, val]) => `
+        <tr><td class="spec-label">${label}:</td><td class="spec-val">${escapeHtml(val)}</td></tr>
+    `).join('');
+
+    const g = hero.growth;
+    const growthItems = [
+        ['Урон от оружия', g.weaponDamage],
+        ['Урон кулака', g.meleeDamage],
+        ["Спиритическая мощь", g.spiritPower],
+        ['Запас здоровья', g.health]
+    ].map(([label, val]) => `
+        <div class="growth-item">
+            <span class="growth-label">${label}:</span>
+            <span class="growth-val">${escapeHtml(val)}</span>
+        </div>
+    `).join('');
+
+    const name = escapeHtml(hero.name.toUpperCase());
+
+    elements.dossierPaper.innerHTML = `
+        <div class="doc-header">
+            <div>
+                <div class="doc-agency-info">НЬЮ-ЙОРКСКИЙ ДЕПАРТАМЕНТ НАДЗОРА ЗА АНОМАЛИЯМИ // АРХИВ ДОСЬЕ</div>
+                <h2 class="doc-file-number">${hero.dossierNo}: ${name}</h2>
+                <div class="doc-agency-info">СЕКЦИЯ КАРТОТЕКИ [ ${hero.drawer} ]</div>
+            </div>
+            <div class="doc-classification-stamp">OFFICIAL DOSSIER</div>
+        </div>
+
+        <div class="doc-grid">
+            <div class="doc-left-column">
+                <div class="mugshot-frame">
+                    <img src="${hero.image}" alt="${escapeHtml(hero.name)}" class="hero-mugshot-img">
+                    <div class="mugshot-caption">ФОТОСНИМОК СУБЪЕКТА: ${name}</div>
+                </div>
+
+                <div class="specs-card">
+                    <div class="specs-card-header"><span class="specs-header-title">ТАБЕЛЬНОЕ ОРУЖИЕ</span></div>
+                    <div class="specs-weapon-name">${escapeHtml(w.name)}</div>
+                    <table class="specs-table"><tbody>${specRows}</tbody></table>
+                </div>
+
+                <div class="specs-card">
+                    <div class="specs-card-header"><span class="specs-header-title">ПРИРОСТ ЗА КАЖДЫЙ BOON</span></div>
+                    <div class="growth-grid">${growthItems}</div>
+                </div>
+            </div>
+
+            <div class="doc-right-column">
+                <div class="dossier-section">
+                    <div class="section-label">ИСТОРИЯ СУДЬБЫ</div>
+                    <p class="bio-text">${escapeHtml(hero.lore)}</p>
+                </div>
+
+                <div class="dossier-section">
+                    <div class="section-label">СПОСОБНОСТИ СУБЪЕКТА</div>
+                    <div class="abilities-container">${abilitiesHtml}</div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// ---------------------------------------------------------------------------
+// Поиск
+// ---------------------------------------------------------------------------
+function heroMatches(hero, q) {
+    if (!q) return true;
+    return hero.name.toLowerCase().includes(q) ||
+        hero.dossierNo.toLowerCase().includes(q) ||
+        (hero.weapon && hero.weapon.name.toLowerCase().includes(q)) ||
+        hero.abilities.some(ab => ab.name.toLowerCase().includes(q));
+}
+
+function handleSearch(query) {
+    state.searchQuery = query.trim().toLowerCase();
+    const q = state.searchQuery;
+    elements.clearSearchBtn.hidden = !q;
+
+    const perCell = {};
+    let total = 0;
+    heroes.forEach(hero => {
+        const match = heroMatches(hero, q);
+        const el = document.querySelector(`.dossier-folder-item[data-hero-id="${hero.id}"]`);
+        if (el) el.hidden = !match;
+        if (match) {
+            total++;
+            perCell[hero.drawer] = (perCell[hero.drawer] || 0) + 1;
+        }
+    });
+
+    Object.entries(cells).forEach(([key, cell]) => {
+        cell.emptyNote.hidden = !q || Boolean(perCell[key]);
+        // При поиске открываем ячейки с совпадениями и закрываем пустые
+        if (q) setCellOpen(key, Boolean(perCell[key]));
+    });
+
+    elements.searchCount.textContent = q ? String(total) : '';
+    elements.searchBox.classList.toggle('no-results', Boolean(q) && total === 0);
+}
+
+// ---------------------------------------------------------------------------
+// События
+// ---------------------------------------------------------------------------
+function setupEventListeners() {
+    // Первое действие пользователя разрешает звук
+    const unlock = () => state.sound.unlock();
+    window.addEventListener('pointerdown', unlock, { once: true });
+    window.addEventListener('keydown', unlock, { once: true });
+
+    Object.entries(cells).forEach(([key, cell]) => {
+        cell.door.addEventListener('click', e => {
+            e.stopPropagation();
+            toggleCell(key);
+        });
+        cell.door.addEventListener('keydown', e => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                toggleCell(key);
+            }
+        });
+        cell.root.querySelector('.cell-label-plate').addEventListener('click', () => toggleCell(key));
+    });
+
+    elements.soundToggleBtn.addEventListener('click', () => {
+        const on = state.sound.toggle();
+        elements.soundToggleBtn.querySelector('.sound-text').textContent = on ? 'Звук: ВКЛ' : 'Звук: ВЫКЛ';
+        elements.soundToggleBtn.querySelector('.sound-icon').textContent = on ? '🔊' : '🔇';
+        elements.soundToggleBtn.classList.toggle('is-muted', !on);
+        if (on) state.sound.playPaperRustle();
+    });
+
+    elements.searchInput.addEventListener('input', e => handleSearch(e.target.value));
+    elements.clearSearchBtn.addEventListener('click', () => {
+        elements.searchInput.value = '';
+        handleSearch('');
+        elements.searchInput.focus();
+    });
+
+    elements.prevHeroBtn.addEventListener('click', () => openDossierByIndex(state.currentHeroIndex - 1));
+    elements.nextHeroBtn.addEventListener('click', () => openDossierByIndex(state.currentHeroIndex + 1));
+    elements.modalCloseBtn.addEventListener('click', closeDossier);
+    elements.modalBackdrop.addEventListener('click', closeDossier);
+
+    window.addEventListener('keydown', e => {
+        if (!state.isModalOpen) return;
+        if (e.key === 'Escape') closeDossier();
+        else if (e.key === 'ArrowLeft') openDossierByIndex(state.currentHeroIndex - 1);
+        else if (e.key === 'ArrowRight') openDossierByIndex(state.currentHeroIndex + 1);
+    });
+}
+
+// ---------------------------------------------------------------------------
+// Запуск
+// ---------------------------------------------------------------------------
+function init() {
     elements = {
-        drawerCols: {
-            'A-H': document.getElementById('drawerCol-A-H'),
-            'I-R': document.getElementById('drawerCol-I-R'),
-            'S-Z': document.getElementById('drawerCol-S-Z')
-        },
-        stacks: {
-            'A-H': document.getElementById('stack-A-H'),
-            'I-R': document.getElementById('stack-I-R'),
-            'S-Z': document.getElementById('stack-S-Z')
-        },
-        navButtons: document.querySelectorAll('.nav-drawer-btn'),
-        activeCountLabel: document.getElementById('activeCountLabel'),
+        cabinetCells: document.getElementById('cabinetCells'),
+        searchBox: document.getElementById('searchBox'),
         searchInput: document.getElementById('searchInput'),
+        searchCount: document.getElementById('searchCount'),
         clearSearchBtn: document.getElementById('clearSearch'),
         soundToggleBtn: document.getElementById('soundToggle'),
         modal: document.getElementById('dossierModal'),
@@ -178,496 +562,25 @@ function initElements() {
         nextHeroBtn: document.getElementById('nextHeroBtn'),
         dossierCounter: document.getElementById('dossierCounter')
     };
-}
 
-// Render Folders into each drawer and calculate adaptive dimensions
-function renderAllDrawers() {
-    if (!window.HEROES_DATA || !Array.isArray(window.HEROES_DATA)) return;
+    const params = new URLSearchParams(window.location.search);
+    const drawerParam = (params.get('drawer') || '').toUpperCase();
+    if (SECTIONS.some(s => s.key === drawerParam)) state.openCells = new Set([drawerParam]);
 
-    ['A-H', 'I-R', 'S-Z'].forEach(drawerKey => {
-        const stackEl = elements.stacks[drawerKey];
-        const colEl = elements.drawerCols[drawerKey];
-        if (!stackEl || !colEl) return;
-        
-        stackEl.innerHTML = '';
-        const heroesInDrawer = window.HEROES_DATA.filter(h => h.drawer === drawerKey);
-        const count = heroesInDrawer.length;
-
-        // Dynamic Adaptive Calculation based on folder count:
-        // Each folder takes a fixed comfortable step of 26px so tabs are never squashed.
-        // The last folder body takes full height (118px) + clearance.
-        const STEP = 26;
-        const FOLDER_BODY_HEIGHT = 118;
-        const TOP_PADDING = 14;
-        const stackHeight = Math.max(340, (count - 1) * STEP + FOLDER_BODY_HEIGHT + 14);
-        const bayHeight = stackHeight + TOP_PADDING + 8;
-        const slideDownDist = bayHeight;
-        const colTotalHeight = slideDownDist + 520;
-
-        // Set custom properties for adaptive CSS
-        colEl.style.setProperty('--stack-height', `${stackHeight}px`);
-        colEl.style.setProperty('--bay-height', `${bayHeight}px`);
-        colEl.style.setProperty('--slide-down-dist', `${slideDownDist}px`);
-        colEl.style.setProperty('--col-total-height', `${colTotalHeight}px`);
-
-        stackEl.style.height = `${stackHeight}px`;
-
-        heroesInDrawer.forEach((hero, index) => {
-            const folderEl = createFolderElement(hero);
-            folderEl.style.zIndex = index + 1;
-            stackEl.appendChild(folderEl);
-        });
-    });
-}
-
-// Create Folder Element with Staggered Tab
-function createFolderElement(hero) {
-    const item = document.createElement('div');
-    item.className = 'dossier-folder-item';
-    item.dataset.heroId = hero.id;
-
-    // Manila Tab with staggered position (tab-slot-0 to tab-slot-4)
-    const tabSlotClass = `tab-slot-${hero.tabSlot}`;
-    
-    item.innerHTML = `
-        <div class="folder-tab ${tabSlotClass}">
-            <img src="${hero.image}" alt="${hero.name}" class="tab-hero-avatar">
-            <span class="tab-hero-name">${hero.name.toUpperCase()}</span>
-        </div>
-        <div class="folder-body">
-            <div class="folder-paper-peek"></div>
-            <div class="folder-crease"></div>
-            <div class="folder-crease-secondary"></div>
-            <div class="folder-metal-clip" title="Архивная скрепка"></div>
-            <div class="folder-cover-content">
-                <span class="folder-stamp">CONFIDENTIAL // SEC-84</span>
-                <span class="folder-case-number">CASE № ${hero.dossierNo}</span>
-            </div>
-        </div>
-    `;
-
-    // Folder interactions:
-    // Hover: rises up + rustle sound
-    item.addEventListener('mouseenter', () => {
-        state.sound.playPaperRustle();
-    });
-
-    // Click: open dossier
-    item.addEventListener('click', (e) => {
-        e.stopPropagation();
-        openDossierById(hero.id);
-    });
-
-    return item;
-}
-
-// Switch or Toggle Active Open Drawer
-function updateActiveDrawer(targetDrawer, playAudio = true) {
-    // If clicking the already open drawer: toggle close it!
-    if (state.activeDrawer === targetDrawer && playAudio) {
-        state.activeDrawer = null;
-    } else {
-        state.activeDrawer = targetDrawer;
-    }
-
-    // Update drawer column classes
-    Object.keys(elements.drawerCols).forEach(key => {
-        const col = elements.drawerCols[key];
-        if (!col) return;
-        if (key === state.activeDrawer) {
-            col.classList.add('active-open');
-        } else {
-            col.classList.remove('active-open');
-        }
-    });
-
-    // Update nav button active states
-    if (elements.navButtons) {
-        elements.navButtons.forEach(btn => {
-            if (btn.dataset.drawer === state.activeDrawer) {
-                btn.classList.add('active');
-            } else {
-                btn.classList.remove('active');
-            }
-        });
-    }
-
-    // Update status counter
-    if (window.HEROES_DATA && elements.activeCountLabel) {
-        if (state.activeDrawer) {
-            const activeHeroes = window.HEROES_DATA.filter(h => h.drawer === state.activeDrawer);
-            elements.activeCountLabel.textContent = `Секция [ ${state.activeDrawer} ] • Дел в ящике: ${activeHeroes.length}`;
-        } else {
-            elements.activeCountLabel.textContent = `Все ящики задвинуты • Выберите секцию`;
-        }
-    }
-
-    if (playAudio) {
-        state.sound.playDrawerSlide();
-    }
-}
-
-// Open Confidential Dossier Document by Hero ID
-function openDossierById(heroId) {
-    if (!window.HEROES_DATA) return;
-    const index = window.HEROES_DATA.findIndex(h => h.id === heroId);
-    if (index === -1) return;
-    openDossierByIndex(index);
-}
-
-// Open Confidential Dossier Document by Index
-function openDossierByIndex(index) {
-    if (!window.HEROES_DATA) return;
-    if (index < 0) index = window.HEROES_DATA.length - 1;
-    if (index >= window.HEROES_DATA.length) index = 0;
-
-    state.currentHeroIndex = index;
-    const hero = window.HEROES_DATA[index];
-
-    // Ensure parent drawer is active
-    if (hero.drawer !== state.activeDrawer) {
-        updateActiveDrawer(hero.drawer, false);
-    }
-
-    renderDossierContent(hero);
-
-    // Update counter
-    if (elements.dossierCounter) {
-        elements.dossierCounter.textContent = `ДЕЛО ${index + 1} ИЗ ${window.HEROES_DATA.length} [ ${hero.drawer} ]`;
-    }
-
-    // Show modal
-    if (elements.modal) {
-        elements.modal.classList.add('active');
-        elements.modal.setAttribute('aria-hidden', 'false');
-    }
-    state.isModalOpen = true;
-
-    state.sound.playDossierOpen();
-}
-
-// Close Dossier Document
-function closeDossier() {
-    if (elements.modal) {
-        elements.modal.classList.remove('active');
-        elements.modal.setAttribute('aria-hidden', 'true');
-    }
-    state.isModalOpen = false;
-    state.sound.playPaperRustle();
-}
-
-// Render full dossier paper inside the modal
-function renderDossierContent(hero) {
-    if (!elements.dossierPaper) return;
-
-    // Render abilities HTML (Only official in-game abilities)
-    const abilitiesHtml = hero.abilities.map((ab, idx) => {
-        const isUlt = idx === 3 || ab.type === 'Ультимейт';
-        const keyLabel = isUlt ? '4 ★ ULT' : ab.key;
-        return `
-            <div class="ability-card ${isUlt ? 'ult-card' : ''}">
-                <div class="ability-header">
-                    <span class="ability-key-badge">${keyLabel}</span>
-                    <span class="ability-name">${ab.name}</span>
-                    <span class="ability-type">${ab.type}</span>
-                </div>
-                <div class="ability-desc">${ab.desc}</div>
-            </div>
-        `;
-    }).join('');
-
-    elements.dossierPaper.innerHTML = `
-        <div class="doc-header">
-            <div>
-                <div class="doc-agency-info">НЬЮ-ЙОРКСКИЙ ДЕПАРТАМЕНТ НАДЗОРА ЗА АНОМАЛИЯМИ // АРХИВ ДОСЬЕ</div>
-                <h2 class="doc-file-number">${hero.dossierNo}: ${hero.name.toUpperCase()}</h2>
-                <div class="doc-agency-info">СТАТУС: АКТИВНЫЙ УЧАСТНИК РИТУАЛА • СЕКЦИЯ КАРТОТЕКИ [ ${hero.drawer} ]</div>
-            </div>
-            <div>
-                <div class="doc-classification-stamp">OFFICIAL DOSSIER</div>
-            </div>
-        </div>
-
-        <div class="doc-grid">
-            <!-- Left Column: Mugshot, Weapon Specs, Attribute Growth -->
-            <div class="doc-left-column">
-                <div class="mugshot-frame">
-                    <img src="${hero.image}" alt="${hero.name}" class="hero-mugshot-img">
-                    <div class="mugshot-caption">ФОТОСНИМОК СУБЪЕКТА: ${hero.name.toUpperCase()}</div>
-                </div>
-
-                <!-- Weapon Specs from in-game data -->
-                <div class="specs-card weapon-specs-card">
-                    <div class="specs-card-header">
-                        <span class="specs-header-title">ТАБЕЛЬНОЕ ОРУЖИЕ</span>
-                    </div>
-                    <div class="specs-weapon-name">${hero.weapon.name}</div>
-                    <table class="specs-table">
-                        <tbody>
-                            <tr>
-                                <td class="spec-label">Урон от пули:</td>
-                                <td class="spec-val">${hero.weapon.bulletDamage}</td>
-                            </tr>
-                            <tr>
-                                <td class="spec-label">Урон в секунду (DPS):</td>
-                                <td class="spec-val">${hero.weapon.dps}</td>
-                            </tr>
-                            <tr>
-                                <td class="spec-label">Скорострельность:</td>
-                                <td class="spec-val">${hero.weapon.fireRate}</td>
-                            </tr>
-                            <tr>
-                                <td class="spec-label">Боезапас (обойма):</td>
-                                <td class="spec-val">${hero.weapon.ammo}</td>
-                            </tr>
-                            <tr>
-                                <td class="spec-label">Время перезарядки:</td>
-                                <td class="spec-val">${hero.weapon.reloadTime}</td>
-                            </tr>
-                            <tr>
-                                <td class="spec-label">Скорость пули:</td>
-                                <td class="spec-val">${hero.weapon.bulletVelocity}</td>
-                            </tr>
-                            <tr>
-                                <td class="spec-label">Спад урона по дальности:</td>
-                                <td class="spec-val">${hero.weapon.falloff}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Attribute Level Gains from in-game data -->
-                <div class="specs-card growth-specs-card">
-                    <div class="specs-card-header">
-                        <span class="specs-header-title">ПРИРОСТЫ ЗА УРОВЕНЬ (LEVEL GAINS)</span>
-                    </div>
-                    <div class="growth-grid">
-                        <div class="growth-item">
-                            <span class="growth-bullet">▸</span>
-                            <div class="growth-info">
-                                <span class="growth-label">Урон от оружия:</span>
-                                <span class="growth-val">${hero.growth.weaponDamage}</span>
-                            </div>
-                        </div>
-                        <div class="growth-item">
-                            <span class="growth-bullet">▸</span>
-                            <div class="growth-info">
-                                <span class="growth-label">Урон кулака:</span>
-                                <span class="growth-val">${hero.growth.meleeDamage}</span>
-                            </div>
-                        </div>
-                        <div class="growth-item">
-                            <span class="growth-bullet">▸</span>
-                            <div class="growth-info">
-                                <span class="growth-label">Спиритизм:</span>
-                                <span class="growth-val">${hero.growth.spiritPower}</span>
-                            </div>
-                        </div>
-                        <div class="growth-item">
-                            <span class="growth-bullet">▸</span>
-                            <div class="growth-info">
-                                <span class="growth-label">Запас здоровья:</span>
-                                <span class="growth-val">${hero.growth.health}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right Column: A Fate's Tale (Lore), Abilities -->
-            <div class="doc-right-column">
-                <div class="dossier-section">
-                    <div class="section-label">ИСТОРИЯ СУДЬБЫ (A FATE'S TALE)</div>
-                    <p class="bio-text">${hero.lore}</p>
-                </div>
-
-                <div class="dossier-section">
-                    <div class="section-label">СПОСОБНОСТИ СУБЪЕКТА (IN-GAME ABILITIES)</div>
-                    <div class="abilities-container">
-                        ${abilitiesHtml}
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-}
-
-// Search and Filter Logic
-function handleSearch(query) {
-    if (!window.HEROES_DATA) return;
-    state.searchQuery = query.trim().toLowerCase();
-    
-    if (elements.clearSearchBtn) {
-        if (state.searchQuery) {
-            elements.clearSearchBtn.style.display = 'block';
-        } else {
-            elements.clearSearchBtn.style.display = 'none';
-        }
-    }
-
-    // Filter folder items in all drawers
-    let matchesCount = 0;
-    let firstMatchingDrawer = null;
-
-    window.HEROES_DATA.forEach(hero => {
-        const match = !state.searchQuery || 
-            hero.name.toLowerCase().includes(state.searchQuery) ||
-            hero.dossierNo.toLowerCase().includes(state.searchQuery) ||
-            (hero.weapon && hero.weapon.name && hero.weapon.name.toLowerCase().includes(state.searchQuery)) ||
-            (hero.abilities && hero.abilities.some(ab => ab.name.toLowerCase().includes(state.searchQuery)));
-
-        const el = document.querySelector(`.dossier-folder-item[data-hero-id="${hero.id}"]`);
-        if (el) {
-            el.style.display = match ? 'block' : 'none';
-        }
-
-        if (match) {
-            matchesCount++;
-            if (!firstMatchingDrawer) firstMatchingDrawer = hero.drawer;
-        }
-    });
-
-    if (elements.activeCountLabel) {
-        if (state.searchQuery) {
-            elements.activeCountLabel.textContent = `Найдено совпадений: ${matchesCount}`;
-            // Automatically switch to the drawer that contains the first match
-            if (firstMatchingDrawer && firstMatchingDrawer !== state.activeDrawer) {
-                updateActiveDrawer(firstMatchingDrawer, false);
-            }
-        } else {
-            const activeHeroes = window.HEROES_DATA.filter(h => h.drawer === state.activeDrawer);
-            elements.activeCountLabel.textContent = `Секция [ ${state.activeDrawer} ] • Дел в ящике: ${activeHeroes.length}`;
-        }
-    }
-}
-
-// Setup Event Listeners
-function setupEventListeners() {
-    // Clicking on drawer face (closed or open) opens / toggles that drawer
-    Object.keys(elements.drawerCols).forEach(key => {
-        const col = elements.drawerCols[key];
-        if (!col) return;
-        const face = col.querySelector('.drawer-face');
-        if (face) {
-            face.addEventListener('click', (e) => {
-                e.stopPropagation();
-                updateActiveDrawer(key);
-            });
-        }
-    });
-
-    // Navigation buttons in header
-    if (elements.navButtons) {
-        elements.navButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const drawer = btn.dataset.drawer;
-                if (drawer) {
-                    updateActiveDrawer(drawer);
-                }
-            });
-        });
-    }
-
-    // Sound toggle
-    if (elements.soundToggleBtn) {
-        elements.soundToggleBtn.addEventListener('click', () => {
-            const isSoundOn = state.sound.toggle();
-            const textSpan = elements.soundToggleBtn.querySelector('.sound-text');
-            const iconSpan = elements.soundToggleBtn.querySelector('.sound-icon');
-            if (isSoundOn) {
-                if (textSpan) textSpan.textContent = 'Звук: ВКЛ';
-                if (iconSpan) iconSpan.textContent = '🔊';
-                elements.soundToggleBtn.style.borderColor = 'var(--brass-bright)';
-                state.sound.playPaperRustle();
-            } else {
-                if (textSpan) textSpan.textContent = 'Звук: ВЫКЛ';
-                if (iconSpan) iconSpan.textContent = '🔇';
-                elements.soundToggleBtn.style.borderColor = 'var(--brass-dark)';
-            }
-        });
-    }
-
-    // Search input
-    if (elements.searchInput) {
-        elements.searchInput.addEventListener('input', (e) => {
-            handleSearch(e.target.value);
-        });
-    }
-
-    // Clear search
-    if (elements.clearSearchBtn) {
-        elements.clearSearchBtn.addEventListener('click', () => {
-            elements.searchInput.value = '';
-            handleSearch('');
-            elements.searchInput.focus();
-        });
-    }
-
-    // Modal navigation
-    if (elements.prevHeroBtn) {
-        elements.prevHeroBtn.addEventListener('click', () => {
-            openDossierByIndex(state.currentHeroIndex - 1);
-        });
-    }
-
-    if (elements.nextHeroBtn) {
-        elements.nextHeroBtn.addEventListener('click', () => {
-            openDossierByIndex(state.currentHeroIndex + 1);
-        });
-    }
-
-    // Close modal handlers
-    if (elements.modalCloseBtn) {
-        elements.modalCloseBtn.addEventListener('click', closeDossier);
-    }
-    if (elements.modalBackdrop) {
-        elements.modalBackdrop.addEventListener('click', closeDossier);
-    }
-
-    // Keyboard navigation
-    window.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && state.isModalOpen) {
-            closeDossier();
-        } else if (state.isModalOpen && e.key === 'ArrowLeft') {
-            openDossierByIndex(state.currentHeroIndex - 1);
-        } else if (state.isModalOpen && e.key === 'ArrowRight') {
-            openDossierByIndex(state.currentHeroIndex + 1);
-        }
-    });
-}
-
-// Initialize Application
-function init() {
-    initElements();
-
-    // Check deep-linking URL parameter BEFORE initial drawer activation
-    const urlParams = new URLSearchParams(window.location.search);
-    const targetDrawer = urlParams.get('drawer');
-    if (targetDrawer && ['A-H', 'I-R', 'S-Z'].includes(targetDrawer.toUpperCase())) {
-        state.activeDrawer = targetDrawer.toUpperCase();
-    }
-
-    renderAllDrawers();
+    buildCabinet();
+    SECTIONS.forEach(s => setCellOpen(s.key, state.openCells.has(s.key), false));
     setupEventListeners();
-    updateActiveDrawer(state.activeDrawer, false);
 
-    // Enable smooth physics animations after initial layout is established
-    requestAnimationFrame(() => {
-        setTimeout(() => {
-            document.body.classList.add('cabinet-ready');
-        }, 60);
-    });
+    // Анимации включаем после первой отрисовки, чтобы дверцы не «хлопали» при загрузке
+    requestAnimationFrame(() => setTimeout(() => document.body.classList.add('cabinet-ready'), 60));
 
-    const targetHero = (urlParams.get('hero') || window.location.hash.replace('#', '')).toLowerCase();
-    if (targetHero) {
-        const found = window.HEROES_DATA.find(h => h.id.toLowerCase() === targetHero || h.name.toLowerCase() === targetHero);
-        if (found) {
-            openDossierById(found.id);
-        }
+    const target = (params.get('hero') || decodeURIComponent(window.location.hash.slice(1))).toLowerCase();
+    if (target) {
+        const found = heroes.find(h => h.id === target || h.name.toLowerCase() === target);
+        if (found) openDossierById(found.id);
     }
 }
 
-// Start application when DOM is ready or immediately if already loaded
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
 } else {
