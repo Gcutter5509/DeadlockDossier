@@ -3,6 +3,75 @@
    Heavy Cold-Rolled Gunmetal & Stainless Steel Registry
    ========================================================================== */
 
+/* ==========================================================================
+   РЕЗЕРВНЫЕ ШРИФТЫ С ПОДОГНАННЫМИ МЕТРИКАМИ (сгенерировано unjs/fontaine)
+   Пока веб-шрифт грузится, текст рисуется системным шрифтом, растянутым
+   под размеры веб-шрифта, — после загрузки строки не «прыгают».
+   ========================================================================== */
+
+@font-face {
+  font-family: "Old Standard TT fallback";
+  src: local("Times New Roman"), local("Times New Roman Regular"), local("TimesNewRoman-Regular"), local("TimesNewRomanPSMT"), local("Liberation Serif"), local("Tinos");
+  size-adjust: 108.0615%;
+  ascent-override: 70.5154%;
+  descent-override: 22.0245%;
+  line-gap-override: 21.8394%;
+}
+
+@font-face {
+  font-family: "Forum fallback";
+  src: local("Times New Roman"), local("Times New Roman Regular"), local("TimesNewRoman-Regular"), local("TimesNewRomanPSMT"), local("Liberation Serif"), local("Tinos");
+  size-adjust: 99.9385%;
+  ascent-override: 85.6527%;
+  descent-override: 24.8153%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Playfair Display fallback";
+  src: local("Times New Roman"), local("Times New Roman Regular"), local("TimesNewRoman-Regular"), local("TimesNewRomanPSMT"), local("Liberation Serif"), local("Tinos");
+  size-adjust: 111.2615%;
+  ascent-override: 97.2483%;
+  descent-override: 22.5595%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "IBM Plex Mono fallback";
+  src: local("Courier New"), local("Courier New Regular"), local("CourierNew-Regular"), local("CourierNewPSMT"), local("Liberation Mono"), local("Cousine");
+  size-adjust: 99.9837%;
+  ascent-override: 102.5167%;
+  descent-override: 27.5045%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Rubik Mono One fallback";
+  src: local("Courier New"), local("Courier New Regular"), local("CourierNew-Regular"), local("CourierNewPSMT"), local("Liberation Mono"), local("Cousine");
+  size-adjust: 141.6436%;
+  ascent-override: 65.7989%;
+  descent-override: 21.6035%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Special Elite fallback";
+  src: local("Courier New"), local("Courier New Regular"), local("CourierNew-Regular"), local("CourierNewPSMT"), local("Liberation Mono"), local("Cousine");
+  size-adjust: 87.0627%;
+  ascent-override: 80.7608%;
+  descent-override: 34.099%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Share Tech Mono fallback";
+  src: local("Courier New"), local("Courier New Regular"), local("CourierNew-Regular"), local("CourierNewPSMT"), local("Liberation Mono"), local("Cousine");
+  size-adjust: 89.9854%;
+  ascent-override: 98.3493%;
+  descent-override: 26.8933%;
+  line-gap-override: 0%;
+}
+
 :root {
     /* Industrial Metal Palette */
     --metal-darkest: #0e1113;
@@ -32,9 +101,15 @@
     --ink-red: #a82628;
     --ink-stamp: #b82224;
 
-    --font-heading: 'Playfair Display', Georgia, serif;
-    --font-typewriter: 'Special Elite', 'Courier Prime', Courier, monospace;
-    --font-mono: 'Share Tech Mono', 'Courier Prime', monospace;
+    --font-heading: 'Playfair Display', 'Playfair Display fallback', Georgia, serif;
+    --font-typewriter: 'Special Elite', 'Special Elite fallback', Courier, monospace;
+    --font-mono: 'Share Tech Mono', 'Share Tech Mono fallback', 'Courier New', monospace;
+
+    /* Шрифты досье — все с кириллицей (у Special Elite / Share Tech Mono её нет) */
+    --doc-serif: 'Old Standard TT', 'Old Standard TT fallback', 'PT Serif', Georgia, serif;   /* текст документа */
+    --doc-mono: 'IBM Plex Mono', 'IBM Plex Mono fallback', 'PT Mono', 'Courier New', monospace; /* машинопись */
+    --doc-title: 'Forum', 'Forum fallback', 'Old Standard TT', Georgia, serif;     /* заголовок дела */
+    --doc-stamp: 'Rubik Mono One', 'Rubik Mono One fallback', 'IBM Plex Mono', monospace;   /* резиновый штамп */
 
     /* Цвета краёв страницы — для бесшовной «резинки», если браузер её всё же показывает */
     --edge-top: #1f262c;    /* верх шапки */
@@ -212,12 +287,6 @@ body::before {
 .search-box:focus-within {
     border-color: var(--metal-highlight);
     box-shadow: 0 0 12px rgba(148, 169, 186, 0.4);
-}
-
-.search-icon {
-    font-size: 0.95rem;
-    margin-right: 8px;
-    opacity: 0.8;
 }
 
 .search-box input {
@@ -1264,7 +1333,7 @@ body:not(.cabinet-ready) .cell { transition: none; }
     border: 1px solid #ff7a7a;
     border-radius: 3px;
     padding: 6px 14px;
-    font-family: var(--font-mono);
+    font-family: var(--doc-mono);
     font-size: 0.82rem;
     font-weight: 700;
     letter-spacing: 1.5px;
@@ -1326,11 +1395,11 @@ body:not(.cabinet-ready) .cell { transition: none; }
     letter-spacing: 1.5px;
     color: var(--ink-faded);
     text-transform: uppercase;
-    font-family: var(--font-mono);
+    font-family: var(--doc-mono);
 }
 
 .doc-file-number {
-    font-family: var(--font-heading);
+    font-family: var(--doc-title);
     font-size: 1.7rem;
     font-weight: 900;
     color: #120d09;
@@ -1409,7 +1478,7 @@ body:not(.cabinet-ready) .cell { transition: none; }
     color: #665747;
     margin-top: 6px;
     letter-spacing: 1px;
-    font-family: var(--font-mono);
+    font-family: var(--doc-mono);
 }
 
 /* Left Column: Weapon & Growth Specs Cards */
@@ -1431,7 +1500,7 @@ body:not(.cabinet-ready) .cell { transition: none; }
 }
 
 .specs-header-title {
-    font-family: var(--font-mono);
+    font-family: var(--doc-mono);
     font-size: 0.72rem;
     font-weight: 700;
     letter-spacing: 1.5px;
@@ -1440,7 +1509,7 @@ body:not(.cabinet-ready) .cell { transition: none; }
 }
 
 .specs-weapon-name {
-    font-family: var(--font-typewriter);
+    font-family: var(--doc-mono);
     font-size: 0.85rem;
     font-weight: 700;
     color: #17110c;
@@ -1477,7 +1546,7 @@ body:not(.cabinet-ready) .cell { transition: none; }
 .spec-val {
     text-align: right;
     white-space: nowrap;
-    font-family: var(--font-mono);
+    font-family: var(--doc-mono);
     font-weight: 700;
     color: #1c150e;
 }
@@ -1516,7 +1585,7 @@ body:not(.cabinet-ready) .cell { transition: none; }
 }
 
 .growth-val {
-    font-family: var(--font-mono);
+    font-family: var(--doc-mono);
     font-weight: 700;
     font-size: 0.8rem;
     color: #164627;
@@ -1607,7 +1676,7 @@ body:not(.cabinet-ready) .cell { transition: none; }
     font-weight: 700;
     padding: 2px 7px;
     border-radius: 2px;
-    font-family: var(--font-mono);
+    font-family: var(--doc-mono);
     letter-spacing: 0.5px;
 }
 
@@ -1628,7 +1697,7 @@ body:not(.cabinet-ready) .cell { transition: none; }
     font-size: 0.7rem;
     color: #556775;
     margin-left: auto;
-    font-family: var(--font-mono);
+    font-family: var(--doc-mono);
     font-weight: 600;
     background: rgba(0, 0, 0, 0.05);
     padding: 1px 5px;
@@ -1663,7 +1732,7 @@ body:not(.cabinet-ready) .cell { transition: none; }
     border: 1px solid #5a6e80;
     border-radius: 3px;
     padding: 6px 16px;
-    font-family: var(--font-mono);
+    font-family: var(--doc-mono);
     font-size: 0.82rem;
     cursor: pointer;
     transition: all 0.2s;
@@ -1676,7 +1745,7 @@ body:not(.cabinet-ready) .cell { transition: none; }
 }
 
 .dossier-counter-text {
-    font-family: var(--font-mono);
+    font-family: var(--doc-mono);
     font-size: 0.84rem;
     color: #b5c7d6;
     letter-spacing: 1.5px;
@@ -1791,7 +1860,7 @@ body:not(.cabinet-ready) .cell { transition: none; }
     .emblem-wrapper { width: 44px; height: 44px; }
     .deadlock-title-logo { height: 22px; max-width: 150px; }
     .archive-title-suffix { font-size: 1.05rem; }
-    .sound-text { display: none; }
+    .sound-toggle-btn { padding: 7px 10px; font-size: 0.72rem; }
     .cabinet-stage { padding: 28px 8px 30px; }
     .cabinet-body { padding: 14px 12px 24px; }
     .cabinet-rivet { display: none; }
@@ -1942,4 +2011,95 @@ body:not(.cabinet-ready) .cell { transition: none; }
     .mugshot-frame { transform: none; box-shadow: none; }
     .ability-card { transition: none; box-shadow: none; }
     .doc-classification-stamp { box-shadow: none; }
+}
+
+
+/* ==========================================================================
+   ТИПОГРАФИКА ДОСЬЕ
+   ========================================================================== */
+
+.dossier-document-envelope {
+    font-family: var(--doc-serif);
+}
+
+/* Машинописные поля: служебные строки, подписи, таблицы, метки */
+.doc-agency-info,
+.mugshot-caption,
+.specs-header-title,
+.specs-table,
+.growth-label,
+.section-label,
+.ability-key-badge,
+.ability-type,
+.dossier-counter-text,
+.dossier-nav-btn,
+.modal-close-btn {
+    font-family: var(--doc-mono);
+}
+
+.doc-agency-info { font-size: 0.7rem; letter-spacing: 1px; }
+.section-label { font-size: 0.76rem; font-weight: 600; letter-spacing: 1.5px; }
+.specs-header-title { font-weight: 600; letter-spacing: 1px; }
+.specs-table { font-size: 0.76rem; }
+.spec-label { font-weight: 500; }
+.spec-val, .growth-val { font-weight: 600; }
+.growth-label { font-weight: 500; }
+.ability-type { font-weight: 500; }
+.dossier-counter-text { letter-spacing: 1px; }
+
+/* Заголовок дела — капители ар-деко */
+.doc-file-number {
+    font-family: var(--doc-title);
+    font-weight: 400;
+    font-size: 2rem;
+    letter-spacing: 3px;
+    line-height: 1.15;
+}
+
+/* Резиновый штамп */
+.doc-classification-stamp {
+    font-family: var(--doc-stamp);
+    font-weight: 400;
+    font-size: 0.74rem;
+    letter-spacing: 2px;
+}
+
+/* Текст документа — старая типографская печать */
+.bio-text {
+    font-family: var(--doc-serif);
+    font-size: 0.98rem;
+    line-height: 1.55;
+    /* Переносы: с неразрывными пробелами от Typograf выравнивание по ширине
+       без них даёт «дыры» между словами */
+    hyphens: auto;
+    -webkit-hyphens: auto;
+}
+
+.ability-desc {
+    hyphens: auto;
+    -webkit-hyphens: auto;
+}
+
+.specs-weapon-name {
+    font-family: var(--doc-serif);
+    font-size: 0.98rem;
+    font-weight: 700;
+}
+
+.ability-name {
+    font-family: var(--doc-serif);
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.ability-desc {
+    font-family: var(--doc-serif);
+    font-size: 0.92rem;
+    line-height: 1.45;
+}
+
+@media (max-width: 650px) {
+    .doc-file-number { font-size: 1.55rem; letter-spacing: 2px; }
+    .bio-text { font-size: 0.92rem; text-align: left; }
+    .ability-desc { font-size: 0.88rem; }
 }

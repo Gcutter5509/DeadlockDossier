@@ -546,7 +546,6 @@ function setupEventListeners() {
     elements.soundToggleBtn.addEventListener('click', () => {
         const on = state.sound.toggle();
         elements.soundToggleBtn.querySelector('.sound-text').textContent = on ? 'Звук: ВКЛ' : 'Звук: ВЫКЛ';
-        elements.soundToggleBtn.querySelector('.sound-icon').textContent = on ? '🔊' : '🔇';
         elements.soundToggleBtn.classList.toggle('is-muted', !on);
         if (on) state.sound.playPaperRustle();
     });
