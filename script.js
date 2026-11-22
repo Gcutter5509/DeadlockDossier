@@ -304,10 +304,28 @@ function createFolderElement(hero) {
 // ---------------------------------------------------------------------------
 // Дверцы
 // ---------------------------------------------------------------------------
+// Телефон / узкий экран: открыт только один ящик, чтобы страница не превращалась
+// в длинную ленту папок и браузеру было что рисовать поменьше.
+const compactQuery = window.matchMedia('(max-width: 860px)');
+const isCompact = () => compactQuery.matches;
+
 function setCellOpen(key, open, playAudio = true) {
     const cell = cells[key];
     if (!cell) return;
     const wasOpen = state.openCells.has(key);
+
+    if (open && isCompact()) {
+        // Остальные ящики закрываем мгновенно, без анимации и звука
+        Object.keys(cells).forEach(other => {
+            if (other === key || !state.openCells.has(other)) return;
+            const root = cells[other].root;
+            root.classList.add('no-anim');
+            setCellOpen(other, false, false);
+            void root.offsetHeight; // применить без анимации
+            root.classList.remove('no-anim');
+        });
+    }
+
     if (open) state.openCells.add(key); else state.openCells.delete(key);
 
     cell.root.classList.toggle('is-open', open);
@@ -316,6 +334,14 @@ function setCellOpen(key, open, playAudio = true) {
     cell.stack.querySelectorAll('.dossier-folder-item').forEach(f => { f.tabIndex = open ? 0 : -1; });
 
     if (playAudio && wasOpen !== open) state.sound.playDrawer(open);
+
+    // На телефоне подкручиваем к открытому ящику, если он ушёл за верх экрана
+    if (open && !wasOpen && isCompact() && document.body.classList.contains('cabinet-ready')) {
+        const top = cell.root.getBoundingClientRect().top;
+        if (top < 0 || top > window.innerHeight * 0.6) {
+            cell.root.scrollIntoView({ block: 'start', behavior: 'smooth' });
+        }
+    }
 }
 
 function toggleCell(key) {
@@ -482,10 +508,12 @@ function handleSearch(query) {
         }
     });
 
+    const firstMatch = SECTIONS.map(sec => sec.key).find(key => perCell[key]);
     Object.entries(cells).forEach(([key, cell]) => {
         cell.emptyNote.hidden = !q || Boolean(perCell[key]);
         // При поиске открываем ячейки с совпадениями и закрываем пустые
-        if (q) setCellOpen(key, Boolean(perCell[key]));
+        // (на телефоне — только первую ячейку с совпадениями)
+        if (q) setCellOpen(key, isCompact() ? key === firstMatch : Boolean(perCell[key]));
     });
 
     elements.searchCount.textContent = q ? String(total) : '';
