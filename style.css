@@ -63,19 +63,28 @@ body {
 }
 
 body {
-    background-color: var(--metal-darkest);
-    background-image: 
-        radial-gradient(circle at 50% 20%, rgba(45, 56, 66, 0.45) 0%, rgba(14, 17, 19, 0.98) 75%),
-        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-    background-size: 100% 100%, 24px 24px, 24px 24px;
-    /* Фон привязан к окну, а не к высоте документа — не «гуляет», когда меняется высота страницы */
-    background-attachment: fixed;
     color: var(--paper-bg);
     font-family: var(--font-typewriter);
     min-height: 100vh;
     overflow-x: hidden;
     user-select: none;
+}
+
+/* Стена за шкафом — отдельный слой, закреплённый за окном.
+   Он не зависит от высоты страницы (фон не «гуляет») и, в отличие от
+   background-attachment: fixed, не перерисовывается при прокрутке. */
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-color: var(--metal-darkest);
+    background-image:
+        radial-gradient(circle at 50% 20%, rgba(45, 56, 66, 0.45) 0%, rgba(14, 17, 19, 0.98) 75%),
+        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 100% 100%, 24px 24px, 24px 24px;
 }
 
 /* ==========================================================================
@@ -301,9 +310,9 @@ body.modal-open { overflow: hidden; }
     content: '';
     position: absolute;
     top: calc(100% - 2px);
-    left: -100vw;
-    right: -100vw;
-    height: 3000px;
+    left: -50vw;
+    right: -50vw;
+    height: calc(var(--pull-max, 540px) + 200px);
     z-index: -2;
     pointer-events: none;
     border-top: 2px solid rgba(148, 169, 186, 0.1);
@@ -611,8 +620,21 @@ body.modal-open { overflow: hidden; }
     outline: none;
     /* Дальние папки уже и темнее — перспектива внутри ниши */
     transform: translateY(var(--lift)) scaleX(calc(0.93 + 0.07 * var(--depth)));
-    filter: brightness(calc(0.62 + 0.38 * var(--depth)));
-    transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.3, 1), filter 0.22s ease;
+    transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+/* Тень на дальних папках (вместо filter: brightness — так в разы дешевле для GPU) */
+.folder-body::after,
+.folder-tab::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    z-index: 6;
+    border-radius: inherit;
+    background: #000;
+    opacity: calc(0.38 * (1 - var(--depth)));
+    pointer-events: none;
+    transition: opacity 0.22s ease;
 }
 
 .dossier-folder-item[hidden] { display: none; }
@@ -620,7 +642,13 @@ body.modal-open { overflow: hidden; }
 .dossier-folder-item:hover,
 .dossier-folder-item:focus-visible {
     --lift: -10px;
-    filter: brightness(1.06);
+}
+
+.dossier-folder-item:hover .folder-body::after,
+.dossier-folder-item:hover .folder-tab::after,
+.dossier-folder-item:focus-visible .folder-body::after,
+.dossier-folder-item:focus-visible .folder-tab::after {
+    opacity: 0;
 }
 
 .dossier-folder-item:focus-visible .folder-tab {
@@ -1199,8 +1227,7 @@ body:not(.cabinet-ready) .cell { transition: none; }
 .modal-backdrop {
     position: absolute;
     inset: 0;
-    background: rgba(8, 11, 13, 0.9);
-    backdrop-filter: blur(8px);
+    background: rgba(8, 11, 13, 0.94);
 }
 
 .dossier-document-envelope {
@@ -1677,9 +1704,10 @@ body:not(.cabinet-ready) .cell { transition: none; }
 
 /* Сенсорные экраны: без «залипшего» hover у папок и ящиков */
 @media (hover: none) {
-    .dossier-folder-item:hover:not(:focus-visible) {
-        --lift: 0px;
-        filter: brightness(calc(0.62 + 0.38 * var(--depth)));
+    .dossier-folder-item:hover:not(:focus-visible) { --lift: 0px; }
+    .dossier-folder-item:hover:not(:focus-visible) .folder-body::after,
+    .dossier-folder-item:hover:not(:focus-visible) .folder-tab::after {
+        opacity: calc(0.38 * (1 - var(--depth)));
     }
     .cell:not(.is-open) .drawer-front:hover { filter: none; }
 }
@@ -1724,10 +1752,10 @@ body:not(.cabinet-ready) .cell { transition: none; }
 
     /* В одну колонку ящик может выдвинуться только раздвинув соседние ячейки.
        Фон при этом фиксирован, сдвигается лишь содержимое ниже ящика. */
-    .cell { transition: margin-bottom 0.68s cubic-bezier(0.5, 0, 0.8, 0.7); }
+    .cell { transition: margin-bottom 0s linear 0.68s; }
     .cell.is-open {
         margin-bottom: calc(var(--pull) + 10px);
-        transition: margin-bottom 0.98s cubic-bezier(0.35, 0.1, 0.7, 0.92);
+        transition: none;
     }
 }
 

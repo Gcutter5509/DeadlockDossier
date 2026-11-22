@@ -272,7 +272,7 @@ function createFolderElement(hero) {
 
     item.innerHTML = `
         <div class="folder-tab tab-slot-${hero.tabSlot}">
-            <img src="${hero.image}" alt="" class="tab-hero-avatar" loading="lazy">
+            <img src="${hero.image}" alt="" class="tab-hero-avatar" loading="lazy" decoding="async">
             <span class="tab-hero-name">${escapeHtml(hero.name.toUpperCase())}</span>
         </div>
         <div class="folder-body">
